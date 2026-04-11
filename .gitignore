@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.sln.DotSettings.user
+
+# Rider
+.idea/
+
+# Unreal Engine
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# Build
+Build/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
