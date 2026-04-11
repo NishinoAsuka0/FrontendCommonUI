@@ -17,3 +17,12 @@ enum class EConfirmScreenButtonType : uint8
     Closed,
     Unknown UMETA(Hidden)
 };
+
+UENUM(BlueprintType)
+enum class EStoryButtonType : uint8
+{
+    NewStory,
+    Continue,
+    NewGamePlus,
+    Unknown UMETA(Hidden)
+};

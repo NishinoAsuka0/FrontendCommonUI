@@ -13,7 +13,7 @@ void AFrontendPlayerController::OnPossess(APawn* aPawn)
 	
 	TArray<AActor*> foundCameras;
 	UGameplayStatics::GetAllActorsOfClassWithTag(this, ACameraActor::StaticClass(), FName("Default"),foundCameras );
-	DebugHelper::Print(TEXT(" FoundCameras: ") + FString::FromInt(foundCameras.Num() ));
+	/*DebugHelper::Print(TEXT(" FoundCameras: ") + FString::FromInt(foundCameras.Num() ));*/
 	if (!foundCameras.IsEmpty())
 	{
 		SetViewTarget(foundCameras[0]);

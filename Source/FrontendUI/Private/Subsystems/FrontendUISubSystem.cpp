@@ -24,7 +24,7 @@ bool UFrontendUISubSystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	if (!CastChecked<UGameInstance>(Outer)->IsDedicatedServerInstance())
 	{
-		DebugHelper::Print(TEXT("Widget ShouldCreateSubsystem Checker"));
+		/*DebugHelper::Print(TEXT("Widget ShouldCreateSubsystem Checker"));*/
 		TArray<UClass*>foundClasses;
 		GetDerivedClasses(GetClass(), foundClasses);
 		return foundClasses.IsEmpty();
@@ -37,7 +37,7 @@ void UFrontendUISubSystem::RegisterCreatedPrimaryLayoutWidget(UWidget_PrimaryLay
 	check(InCreatedWidget);
 	CreatedPrimaryLayoutWidget = InCreatedWidget;
 	
-	DebugHelper::Print(TEXT("Widget created widget created"));
+	/*DebugHelper::Print(TEXT("Widget created widget created"));*/
 }
 
 void UFrontendUISubSystem::PushSoftWidgetToStackAsync(const FGameplayTag& tag,

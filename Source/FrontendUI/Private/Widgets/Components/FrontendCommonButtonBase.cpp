@@ -43,6 +43,11 @@ void UFrontendCommonButtonBase::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 	SetButtonText(ButtonDisplayText);
+
+	if (ButtonStyleType)
+	{
+		SetStyle(ButtonStyleType);
+	}
 }
 
 void UFrontendCommonButtonBase::NativeDestruct()

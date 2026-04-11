@@ -52,7 +52,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UCommonTextBlock* CommonTextBlock_Title;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidgetOptional))
 	UCommonTextBlock* CommonTextBlock_Message;
 	
 	UPROPERTY(meta = (BindWidget))

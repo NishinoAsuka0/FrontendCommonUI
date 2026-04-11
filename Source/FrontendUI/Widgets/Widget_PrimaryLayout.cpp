@@ -18,7 +18,7 @@ void UWidget_PrimaryLayout::RegisterWidgetStack(UPARAM(meta = (Categories = "Fro
 		if (!RegisteredWidgetStackMap.Contains(InStackTag))
 		{
 			RegisteredWidgetStackMap.Add(InStackTag, registerWidget);
-			DebugHelper::Print(TEXT("Widget Stack Registered Tag : " + InStackTag.ToString()));
+			/*DebugHelper::Print(TEXT("Widget Stack Registered Tag : " + InStackTag.ToString()));*/
 		}
 	}
 }

@@ -36,5 +36,8 @@ private:
 	bool bUserUpperCaseForButtonText = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fronend Button", meta = (AllowPrivateAccess = true))
-	FText ButtonDescriptionText; 
+	FText ButtonDescriptionText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fronend Button", meta = (AllowPrivateAccess = true))
+	TSubclassOf<UCommonButtonStyle> ButtonStyleType;
 };
