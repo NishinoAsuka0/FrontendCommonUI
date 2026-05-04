@@ -9,13 +9,18 @@ public class FrontendUI : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core",
-			"CoreUObject", 
-			"Engine", 
-			"InputCore", 
-			"EnhancedInput", 
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"EnhancedInput",
 			"GameplayTags",
 			"UMG",
-			"CommonInput"
+			"CommonInput",
+			"PropertyPath", 
+			"CommonUI",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
