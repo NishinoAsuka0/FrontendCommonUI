@@ -1,7 +1,7 @@
 # 项目结构索引
 
-> 最后更新: 2026-05-04
-> Timestamp: 20260504
+> 最后更新: 2026-05-05
+> Timestamp: 20260505
 
 ---
 
@@ -23,6 +23,12 @@
 | `Source/FrontendUI/Private/Controller/FrontendPlayerController.cpp` | 前端 PlayerController 实现 |
 | `Source/FrontendUI/Public/Controller/InGamePlayerController.h` | 游戏内 PlayerController（EnhancedInput 绑定 Move/Look/Jump/Attack） |
 | `Source/FrontendUI/Private/Controller/InGamePlayerController.cpp` | 游戏内 PlayerController 实现 |
+
+### PlayerState (PlayerState/)
+| 文件路径 | 描述 |
+|---------|------|
+| `Source/FrontendUI/Public/PlayerState/CharacterState.h` | CharacterState 头文件（PlayerState，持有 ASC + AbilitySets） |
+| `Source/FrontendUI/Private/PlayerState/CharacterState.cpp` | CharacterState 实现 |
 
 ### 角色 (Character/)
 | 文件路径 | 描述 |
@@ -115,6 +121,14 @@
 |---------|------|
 | `Source/FrontendUI/Public/FrontendFunctionLibrary.h` | 前端功能库头文件 |
 | `Source/FrontendUI/Private/FrontendFunctionLibrary.cpp` | 前端功能库实现 |
+
+### 能力系统 (AbilitySystem/)
+| 文件路径 | 描述 |
+|---------|------|
+| `Source/FrontendUI/Public/AbilitySystem/AbilitySet.h` | AbilitySet DataAsset 头文件（Ability/GE/AttributeSet 授予） |
+| `Source/FrontendUI/Private/AbilitySystem/AbilitySet.cpp` | AbilitySet DataAsset 实现 |
+| `Source/FrontendUI/Public/AbilitySystem/AttributeSet_Base.h` | 基础属性集头文件（HP/MaxHP, MP/MaxMP, Energy/MaxEnergy） |
+| `Source/FrontendUI/Private/AbilitySystem/AttributeSet_Base.cpp` | 基础属性集实现（Clamp/Rep/GE回调） |
 
 ### 类型定义 (FrontendTypes/)
 | 文件路径 | 描述 |
@@ -269,6 +283,10 @@
 | FunctionLibrary, 功能库 | `Source/FrontendUI/Public/FrontendFunctionLibrary.h` |
 | FrontendEnumTypes, 枚举类型 | `Source/FrontendUI/Public/FrontendTypes/FrontendEnumTypes.h` |
 | Debug, 调试 | `Source/FrontendUI/Public/FrontendDebugHelper.h` |
+| AbilitySet, 能力集, GAS | `Source/FrontendUI/Public/AbilitySystem/AbilitySet.h` |
+| AttributeSet, 属性集, HP, MP, Energy | `Source/FrontendUI/Public/AbilitySystem/AttributeSet_Base.h` |
+| PlayerState, CharacterState, 玩家状态 | `Source/FrontendUI/Public/PlayerState/CharacterState.h` |
+| GameMode, 游戏模式 | `Content/UI/BP_FrontendGameMode.uasset` |
 | Build, 构建 | `Source/FrontendUI/FrontendUI.Build.cs` |
 | WBP_OptionScreen, 选项界面蓝图 | `Content/UI/Widgets/Options/WBP_CAW_OptionScreen.uasset` |
 | WBP_TabList, Tab列表蓝图 | `Content/UI/Widgets/Options/WBP_CAW_TabList.uasset` |

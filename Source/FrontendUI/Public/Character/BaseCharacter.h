@@ -4,13 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "BaseCharacter.generated.h"
 
 // 前向声明，避免在头文件包含 EnhancedInput 模块（减少编译耦合，速度更快）
 struct FInputActionValue;
 struct FHitResult;
-class UWeaponColliderComponent;
 class UAnimMontage;
+class UAbilitySystemComponent;
+class UGameplayEffect;
+class UAbilitySet;
 
 /**
  * 项目角色基类。
@@ -28,7 +32,7 @@ class UAnimMontage;
  * ToggleStrafeMode / Jump / StopJumping。
  */
 UCLASS()
-class FRONTENDUI_API ABaseCharacter : public ACharacter
+class FRONTENDUI_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -44,6 +48,8 @@ public:
 protected:
 	// [DEBUG] 一次性自检 SpringArm / Camera 配置，定位"鼠标移动相机不跟随"问题，调试完可删
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 	
 	virtual void Jump() override;
 	
@@ -115,17 +121,18 @@ public:
 	// 战斗 — 攻击
 	// =========================================================================
 
-	/** 轻攻击：播放轻攻击蒙太奇，AnimNotify 会在伤害窗口内开关武器碰撞 */
+	// GAS 接口
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	/** 轻攻击：通过 ASC 激活轻攻击 Ability（替代直接播放蒙太奇） */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	virtual void LightAttack();
 
-	/** 重攻击：播放重攻击蒙太奇，AnimNotify 会在伤害窗口内开关武器碰撞 */
+	/** 重攻击：通过 ASC 激活重攻击 Ability（替代直接播放蒙太奇） */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	virtual void HeavyAttack();
 
 	/** 武器碰撞组件引用（蓝图需在 Components 面板中挂载 UWeaponColliderComponent） */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TObjectPtr<UWeaponColliderComponent> WeaponCollider;
 	
 	
 
@@ -135,20 +142,25 @@ protected:
 	virtual void OnAttackHit(AActor* HitActor, const FHitResult& HitResult);
 
 private:
-	/** 轻攻击蒙太奇（蓝图 Details 面板中赋值） */
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|Animation", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAnimMontage> LightAttackMontage;
+	/** ASC 兜底：AI/NPC 无 PlayerState 时使用 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|GAS", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAbilitySystemComponent> FallbackASC;
 
-	/** 重攻击蒙太奇（蓝图 Details 面板中赋值） */
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|Animation", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAnimMontage> HeavyAttackMontage;
+	/** AbilitySet 兜底：AI/NPC 无 PlayerState 时从 Character 授予 */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<UAbilitySet>> FallbackAbilitySets;
 
-	/** 是否正在攻击动作中（门控，防止连点和重入） */
-	bool bIsAttacking = false;
+	/** 伤害 GE 类：通过 SetByCaller 传入伤害值，修改目标的 IncomingDamage 属性 */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass;
 
-	/** Montage 播放结束后重置 bIsAttacking */
-	UFUNCTION()
-	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	/** 轻攻击 Tag：输入按下时通过 ASC 激活匹配此 Tag 的 Ability */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (Categories = "Ability.Activate"))
+	FGameplayTag LightAttackAbilityTag;
+
+	/** 重攻击 Tag：输入按下时通过 ASC 激活匹配此 Tag 的 Ability */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (Categories = "Ability.Activate"))
+	FGameplayTag HeavyAttackAbilityTag;
 
 	/**
 	 * 重写 APawn::AddControllerPitchInput 以实施 Pitch 视角夹紧。
