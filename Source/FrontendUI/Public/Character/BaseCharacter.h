@@ -162,6 +162,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (Categories = "Ability.Activate"))
 	FGameplayTag HeavyAttackAbilityTag;
 
+	/** 轻攻击对应的 SkillID（查询 SkillConfigSubsystem 用） */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS")
+	FName LightAttackSkillID = "LightAttack";
+
+	/** 重攻击对应的 SkillID */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS")
+	FName HeavyAttackSkillID = "HeavyAttack";
+
 	/**
 	 * 重写 APawn::AddControllerPitchInput 以实施 Pitch 视角夹紧。
 	 *

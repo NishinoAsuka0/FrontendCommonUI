@@ -17,6 +17,10 @@
 #include "PlayerState/CharacterState.h"
 #include "GameplayEffect.h"
 
+#include "AbilitySystem/SkillConfigSubsystem.h"
+#include "AbilitySystem/SkillConfigTypes.h"
+#include "FrontendGamePlayTags.h"
+
 #include "FrontendDebugHelper.h"
 
 
@@ -204,7 +208,7 @@ void ABaseCharacter::HeavyAttack()
 
 void ABaseCharacter::OnAttackHit(AActor* HitActor, const FHitResult& HitResult)
 {
-	if (!HitActor || !DamageGameplayEffectClass) return;
+	if (!HitActor) return;
 
 	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(HitActor);
 	UAbilitySystemComponent* TargetASC = ASI ? ASI->GetAbilitySystemComponent() : nullptr;
@@ -217,14 +221,53 @@ void ABaseCharacter::OnAttackHit(AActor* HitActor, const FHitResult& HitResult)
 
 	if (!TargetASC || !MyASC) return;
 
-	FGameplayEffectContextHandle Context = MyASC->MakeEffectContext();
-	Context.AddSourceObject(this);
+	// 尝试从 Subsystem 读取配置
+	USkillConfigSubsystem* SkillSubsystem = USkillConfigSubsystem::Get(this);
+	if (!SkillSubsystem)
+	{
+		// 降级：Subsystem 未就绪时使用旧逻辑
+		if (!DamageGameplayEffectClass) return;
 
-	const FGameplayEffectSpecHandle Spec = MyASC->MakeOutgoingSpec(DamageGameplayEffectClass, 1.f, Context);
-	if (!Spec.IsValid()) return;
+		FGameplayEffectContextHandle Context = MyASC->MakeEffectContext();
+		Context.AddSourceObject(this);
+		const FGameplayEffectSpecHandle Spec = MyASC->MakeOutgoingSpec(DamageGameplayEffectClass, 1.f, Context);
+		if (Spec.IsValid())
+		{
+			const FGameplayTag DamageTag = FGameplayTag::RequestGameplayTag(FName("SetByCaller.Damage"));
+			Spec.Data->SetSetByCallerMagnitude(DamageTag, 20.f);
+			TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		}
+		return;
+	}
 
-	const FGameplayTag DamageTag = FGameplayTag::RequestGameplayTag(FName("SetByCaller.Damage"));
-	Spec.Data->SetSetByCallerMagnitude(DamageTag, 20.f);
+	// 判断当前激活的轻/重攻击
+	FName ActiveSkillID;
+	if (LightAttackAbilityTag.IsValid() && MyASC->HasMatchingGameplayTag(LightAttackAbilityTag))
+	{
+		ActiveSkillID = LightAttackSkillID;
+	}
+	else if (HeavyAttackAbilityTag.IsValid() && MyASC->HasMatchingGameplayTag(HeavyAttackAbilityTag))
+	{
+		ActiveSkillID = HeavyAttackSkillID;
+	}
 
-	TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+	if (ActiveSkillID.IsNone()) return;
+
+	const TArray<FSkillEffectRow> Effects = SkillSubsystem->GetSkillEffects(ActiveSkillID);
+
+	for (const FSkillEffectRow& Effect : Effects)
+	{
+		if (Effect.EffectType.MatchesTag(FrontendGameplayTags::Effect_Damage))
+		{
+			float Damage = FFormulaEvaluator::Evaluate(
+				FString::Printf(TEXT("%.1f + %.1f * Level"), Effect.BaseValue, Effect.ValueScale),
+				1); // Level = 1 for now
+
+			FGameplayEffectSpecHandle Spec = SkillSubsystem->MakeEffectSpec(Effect, Damage, this, TargetASC);
+			if (Spec.IsValid())
+			{
+				TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+			}
+		}
+	}
 }
