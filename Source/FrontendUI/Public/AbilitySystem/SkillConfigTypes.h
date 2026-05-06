@@ -210,3 +210,170 @@ private:
 		FTokenizer& Tokenizer;
 	};
 };
+
+// ============================================================================
+// FFormulaEvaluator — 公式求值器（递归下降）
+// ============================================================================
+
+inline FFormulaEvaluator::FTokenizer::FTokenizer(const FString& InFormula, int32 InLevel, int32 InStacks)
+	: Formula(InFormula), Level(InLevel), Stacks(InStacks)
+{
+}
+
+inline FFormulaEvaluator::FToken FFormulaEvaluator::FTokenizer::Peek() const
+{
+	if (!bHasLookahead)
+	{
+		Lookahead = NextToken();
+		bHasLookahead = true;
+	}
+	return Lookahead;
+}
+
+inline FFormulaEvaluator::FToken FFormulaEvaluator::FTokenizer::Consume()
+{
+	FToken T = Peek();
+	bHasLookahead = false;
+	return T;
+}
+
+inline void FFormulaEvaluator::FTokenizer::SkipWhitespace()
+{
+	while (Pos < Formula.Len() && FChar::IsWhitespace(Formula[Pos]))
+	{
+		++Pos;
+	}
+}
+
+inline float FFormulaEvaluator::FTokenizer::ResolveVariable(const FString& Name) const
+{
+	if (Name.Equals(TEXT("Level"), ESearchCase::IgnoreCase))
+		return static_cast<float>(Level);
+	if (Name.Equals(TEXT("Stack"), ESearchCase::IgnoreCase))
+		return static_cast<float>(Stacks);
+	return 0.f;
+}
+
+inline FFormulaEvaluator::FToken FFormulaEvaluator::FTokenizer::NextToken()
+{
+	SkipWhitespace();
+
+	if (Pos >= Formula.Len())
+		return { ETokenType::End, 0.f };
+
+	const TCHAR C = Formula[Pos];
+
+	if (FChar::IsDigit(C) || C == '.')
+	{
+		const int32 Start = Pos;
+		while (Pos < Formula.Len() && (FChar::IsDigit(Formula[Pos]) || Formula[Pos] == '.'))
+			++Pos;
+		float Val = FCString::Atof(&Formula[Start]);
+		return { ETokenType::Number, Val };
+	}
+
+	if (FChar::IsAlpha(C) || C == '_')
+	{
+		const int32 Start = Pos;
+		while (Pos < Formula.Len() && (FChar::IsAlnum(Formula[Pos]) || Formula[Pos] == '_'))
+			++Pos;
+		FString VarName = Formula.Mid(Start, Pos - Start);
+		float Val = ResolveVariable(VarName);
+		return { ETokenType::Var, Val, VarName };
+	}
+
+	++Pos;
+	switch (C)
+	{
+	case '+': return { ETokenType::Plus };
+	case '-': return { ETokenType::Minus };
+	case '*': return { ETokenType::Mul };
+	case '/': return { ETokenType::Div };
+	case '(': return { ETokenType::LParen };
+	case ')': return { ETokenType::RParen };
+	default:
+		return NextToken();
+	}
+}
+
+// ---- Parser ----
+
+inline float FFormulaEvaluator::FParser::ParseExpression()
+{
+	float Result = ParseTerm();
+	while (true)
+	{
+		FToken T = Tokenizer.Peek();
+		if (T.Type == ETokenType::Plus)
+		{
+			Tokenizer.Consume();
+			Result += ParseTerm();
+		}
+		else if (T.Type == ETokenType::Minus)
+		{
+			Tokenizer.Consume();
+			Result -= ParseTerm();
+		}
+		else break;
+	}
+	return Result;
+}
+
+inline float FFormulaEvaluator::FParser::ParseTerm()
+{
+	float Result = ParseFactor();
+	while (true)
+	{
+		FToken T = Tokenizer.Peek();
+		if (T.Type == ETokenType::Mul)
+		{
+			Tokenizer.Consume();
+			Result *= ParseFactor();
+		}
+		else if (T.Type == ETokenType::Div)
+		{
+			Tokenizer.Consume();
+			float Divisor = ParseFactor();
+			Result = (FMath::Abs(Divisor) > KINDA_SMALL_NUMBER) ? Result / Divisor : Result;
+		}
+		else break;
+	}
+	return Result;
+}
+
+inline float FFormulaEvaluator::FParser::ParseFactor()
+{
+	FToken T = Tokenizer.Peek();
+	if (T.Type == ETokenType::Minus)
+	{
+		Tokenizer.Consume();
+		return -ParseAtom();
+	}
+	return ParseAtom();
+}
+
+inline float FFormulaEvaluator::FParser::ParseAtom()
+{
+	FToken T = Tokenizer.Consume();
+	if (T.Type == ETokenType::Number || T.Type == ETokenType::Var)
+		return T.Value;
+
+	if (T.Type == ETokenType::LParen)
+	{
+		float Val = ParseExpression();
+		Tokenizer.Consume(); // consume RParen
+		return Val;
+	}
+
+	return 0.f;
+}
+
+// ---- Public API ----
+
+inline float FFormulaEvaluator::Evaluate(const FString& Formula, int32 Level, int32 Stacks)
+{
+	if (Formula.IsEmpty()) return 0.f;
+	FTokenizer Tokenizer(Formula, Level, Stacks);
+	FParser Parser(Tokenizer);
+	return Parser.ParseExpression();
+}
