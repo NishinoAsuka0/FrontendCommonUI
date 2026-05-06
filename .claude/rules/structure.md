@@ -1,7 +1,7 @@
 # 项目结构索引
 
-> 最后更新: 2026-05-05
-> Timestamp: 20260505
+> 最后更新: 2026-05-07
+> Timestamp: 20260507
 
 ---
 
@@ -129,6 +129,10 @@
 | `Source/FrontendUI/Private/AbilitySystem/AbilitySet.cpp` | AbilitySet DataAsset 实现 |
 | `Source/FrontendUI/Public/AbilitySystem/AttributeSet_Base.h` | 基础属性集头文件（HP/MaxHP, MP/MaxMP, Energy/MaxEnergy） |
 | `Source/FrontendUI/Private/AbilitySystem/AttributeSet_Base.cpp` | 基础属性集实现（Clamp/Rep/GE回调） |
+| `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` | 技能配置类型定义（FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator） |
+| `Source/FrontendUI/Public/AbilitySystem/SkillConfigSubsystem.h` | 技能配置子系统头文件（运行时 DataTable 查询，GE Spec 创建） |
+| `Source/FrontendUI/Private/AbilitySystem/SkillConfigSubsystem.cpp` | 技能配置子系统实现 |
+| `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` | 技能配置类型头文件（FSkillConfigRow/FSkillEffectRow/FBuffConfigRow + FFormulaEvaluator） |
 
 ### 类型定义 (FrontendTypes/)
 | 文件路径 | 描述 |
@@ -285,6 +289,9 @@
 | Debug, 调试 | `Source/FrontendUI/Public/FrontendDebugHelper.h` |
 | AbilitySet, 能力集, GAS | `Source/FrontendUI/Public/AbilitySystem/AbilitySet.h` |
 | AttributeSet, 属性集, HP, MP, Energy | `Source/FrontendUI/Public/AbilitySystem/AttributeSet_Base.h` |
+| SkillConfigTypes, 技能配置类型, FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator | `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` |
+| SkillConfigSubsystem, 技能配置子系统, DataTable查询, GE创建 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigSubsystem.h` |
+| SkillConfig, 技能配置, SkillConfigTypes, FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator, 公式求值 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` |
 | PlayerState, CharacterState, 玩家状态 | `Source/FrontendUI/Public/PlayerState/CharacterState.h` |
 | GameMode, 游戏模式 | `Content/UI/BP_FrontendGameMode.uasset` |
 | Build, 构建 | `Source/FrontendUI/FrontendUI.Build.cs` |
