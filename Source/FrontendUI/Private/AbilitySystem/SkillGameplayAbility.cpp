@@ -15,6 +15,8 @@ void UGA_DataDriven::ActivateAbility(
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	SkillLevel = GetAbilityLevel();
+
 	const FName SkillID = GetSkillIDFromTags();
 	if (SkillID.IsNone())
 	{
