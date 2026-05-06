@@ -86,13 +86,13 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 
 const FSkillConfigRow* USkillConfigSubsystem::GetSkillConfig(FName SkillID) const
 {
-	const_cast<USkillConfigSubsystem*>(this)->EnsureTablesLoaded();
+	EnsureTablesLoaded();
 	return SkillConfigMap.Find(SkillID);
 }
 
 TArray<FSkillEffectRow> USkillConfigSubsystem::GetSkillEffects(FName SkillID) const
 {
-	const_cast<USkillConfigSubsystem*>(this)->EnsureTablesLoaded();
+	EnsureTablesLoaded();
 
 	TArray<FSkillEffectRow> Result;
 	if (const TArray<FName>* EffectIDs = SkillToEffectsMap.Find(SkillID))
@@ -111,7 +111,7 @@ TArray<FSkillEffectRow> USkillConfigSubsystem::GetSkillEffects(FName SkillID) co
 
 const FBuffConfigRow* USkillConfigSubsystem::GetBuffConfig(FName BuffID) const
 {
-	const_cast<USkillConfigSubsystem*>(this)->EnsureTablesLoaded();
+	EnsureTablesLoaded();
 	return BuffConfigMap.Find(BuffID);
 }
 

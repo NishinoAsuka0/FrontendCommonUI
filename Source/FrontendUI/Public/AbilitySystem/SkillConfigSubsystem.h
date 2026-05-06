@@ -86,10 +86,9 @@ private:
 	/** 确保 DataTable 已加载（懒加载） */
 	void EnsureTablesLoaded();
 
-	TMap<FName, FSkillConfigRow> SkillConfigMap;
-	TMap<FName, FSkillEffectRow> SkillEffectMap;
-	TMap<FName, FBuffConfigRow> BuffConfigMap;
-	TMap<FName, TArray<FName>> SkillToEffectsMap;
-
-	bool bTablesLoaded = false;
+	mutable TMap<FName, FSkillConfigRow> SkillConfigMap;
+	mutable TMap<FName, FSkillEffectRow> SkillEffectMap;
+	mutable TMap<FName, FBuffConfigRow> BuffConfigMap;
+	mutable TMap<FName, TArray<FName>> SkillToEffectsMap;
+	mutable bool bTablesLoaded = false;
 };
