@@ -1,0 +1,2 @@
+Name,DisplayName,DurationFormula,MaxStacks,ModifierOp,ModifierAttribute,ModifierFormula,Icon
+Bleed,NSLOCTEXT("","","出血"),3.0 + 1.0 * Level,5,Additive,"(Tag=Attr.HP)",-2.0 - 0.5 * Level,
