@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include "SkillConfigTypes.generated.h"
 
 /**
