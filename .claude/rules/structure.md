@@ -132,7 +132,8 @@
 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` | 技能配置类型定义（FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator） |
 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigSubsystem.h` | 技能配置子系统头文件（运行时 DataTable 查询，GE Spec 创建） |
 | `Source/FrontendUI/Private/AbilitySystem/SkillConfigSubsystem.cpp` | 技能配置子系统实现 |
-| `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` | 技能配置类型头文件（FSkillConfigRow/FSkillEffectRow/FBuffConfigRow + FFormulaEvaluator） |
+| `Source/FrontendUI/Public/AbilitySystem/SkillGameplayAbility.h` | 数据驱动技能类头文件（UGA_DataDriven，从 DynamicAbilityTags 提取 SkillID） |
+| `Source/FrontendUI/Private/AbilitySystem/SkillGameplayAbility.cpp` | 数据驱动技能类实现（按 EffectType/TargetType 分派 Damage/Heal/Buff） |
 
 ### 类型定义 (FrontendTypes/)
 | 文件路径 | 描述 |
@@ -292,6 +293,7 @@
 | SkillConfigTypes, 技能配置类型, FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator | `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` |
 | SkillConfigSubsystem, 技能配置子系统, DataTable查询, GE创建 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigSubsystem.h` |
 | SkillConfig, 技能配置, SkillConfigTypes, FSkillConfigRow, FSkillEffectRow, FBuffConfigRow, FFormulaEvaluator, 公式求值 | `Source/FrontendUI/Public/AbilitySystem/SkillConfigTypes.h` |
+| UGA_DataDriven, 数据驱动技能, SkillGameplayAbility, GameplayAbility | `Source/FrontendUI/Public/AbilitySystem/SkillGameplayAbility.h` |
 | PlayerState, CharacterState, 玩家状态 | `Source/FrontendUI/Public/PlayerState/CharacterState.h` |
 | GameMode, 游戏模式 | `Content/UI/BP_FrontendGameMode.uasset` |
 | Build, 构建 | `Source/FrontendUI/FrontendUI.Build.cs` |
