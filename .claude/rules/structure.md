@@ -1,7 +1,7 @@
 # 项目结构索引
 
-> 最后更新: 2026-05-07
-> Timestamp: 20260507
+> 最后更新: 2026-05-08
+> Timestamp: 20260508
 
 ---
 
@@ -13,8 +13,8 @@
 | `Source/FrontendUI.Target.cs` | 游戏运行时目标配置 |
 | `Source/FrontendUIEditor.Target.cs` | 编辑器目标配置 |
 | `Source/FrontendUI/FrontendUI.Build.cs` | 模块构建配置（依赖: PropertyPath, CommonInput 等） |
-| `Source/FrontendUI/FrontendUI.h` | 模块头文件 |
-| `Source/FrontendUI/FrontendUI.cpp` | 模块实现文件 |
+| `Source/FrontendUI/Public/FrontendUI.h` | 模块头文件（注册编辑器面板 Tab） |
+| `Source/FrontendUI/Private/FrontendUI.cpp` | 模块实现文件 |
 
 ### 控制器 (Controller/)
 | 文件路径 | 描述 |
@@ -147,6 +147,12 @@
 | `Source/FrontendUI/Private/FrontendGamePlayTags.cpp` | GameplayTags实现 |
 | `Source/FrontendUI/Public/FrontendDebugHelper.h` | 调试辅助头文件 |
 
+### 编辑器工具 (Editor/)
+| 文件路径 | 描述 |
+|---------|------|
+| `Source/FrontendUI/Public/Editor/SDataTableImportPanel.h` | JSON → DataTable 批量导入面板 (Slate Widget) |
+| `Source/FrontendUI/Private/Editor/SDataTableImportPanel.cpp` | 导入面板实现 |
+
 ---
 
 ## 配置文件 (Config/)
@@ -227,6 +233,13 @@
 | `Content/UI/CommonInputData/ControllerData_Gameped.uasset` | 手柄控制器数据 |
 | `Content/UI/CommonInputData/DT_CommonInputKeyMenu.uasset` | 输入按键菜单 DataTable |
 
+### 配置工具 (Config/)
+| 目录/文件 | 描述 |
+|-----------|------|
+| `Content/Config/Tool/xlsx_to_json.py` | Python xlsx→JSON 转换脚本 |
+| `Content/Config/Data/` | xlsx 源数据目录 |
+| `Content/Config/Json/` | 生成的 JSON 输出目录 |
+
 ### 字体资源
 | 目录 | 描述 |
 |-----|------|
@@ -297,6 +310,8 @@
 | PlayerState, CharacterState, 玩家状态 | `Source/FrontendUI/Public/PlayerState/CharacterState.h` |
 | GameMode, 游戏模式 | `Content/UI/BP_FrontendGameMode.uasset` |
 | Build, 构建 | `Source/FrontendUI/FrontendUI.Build.cs` |
+| SDataTableImportPanel, JSON导入, DataTable导入面板, xlsx转json | `Source/FrontendUI/Public/Editor/SDataTableImportPanel.h` |
+| xlsx_to_json, Excel转换脚本 | `Content/Config/Tool/xlsx_to_json.py` |
 | WBP_OptionScreen, 选项界面蓝图 | `Content/UI/Widgets/Options/WBP_CAW_OptionScreen.uasset` |
 | WBP_TabList, Tab列表蓝图 | `Content/UI/Widgets/Options/WBP_CAW_TabList.uasset` |
 | WBP_DetailsView, 详情面板蓝图 | `Content/UI/Widgets/Options/WBP_DetailsView_Options.uasset` |

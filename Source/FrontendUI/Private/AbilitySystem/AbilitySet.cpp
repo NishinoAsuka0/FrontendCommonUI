@@ -27,7 +27,7 @@ void UAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* ASC, UObject* Sou
 
 		if (Entry.InputTag.IsValid())
 		{
-			Spec.DynamicAbilityTags.AddTag(Entry.InputTag);
+			const_cast<FGameplayTagContainer&>(Spec.GetDynamicSpecSourceTags()).AddTag(Entry.InputTag);
 		}
 
 		ASC->GiveAbility(Spec);

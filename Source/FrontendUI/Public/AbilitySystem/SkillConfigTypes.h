@@ -180,7 +180,7 @@ private:
 	{
 	public:
 		explicit FTokenizer(const FString& InFormula, int32 InLevel, int32 InStacks);
-		FToken Peek() const;
+		FToken Peek();
 		FToken Consume();
 		bool IsAtEnd() const { return Pos >= Formula.Len(); }
 
@@ -220,7 +220,7 @@ inline FFormulaEvaluator::FTokenizer::FTokenizer(const FString& InFormula, int32
 {
 }
 
-inline FFormulaEvaluator::FToken FFormulaEvaluator::FTokenizer::Peek() const
+inline FFormulaEvaluator::FToken FFormulaEvaluator::FTokenizer::Peek()
 {
 	if (!bHasLookahead)
 	{

@@ -102,7 +102,7 @@ void UGA_DataDriven::ActivateAbility(
 					{
 						TargetASC = OwnerASC;
 					}
-					else if (TriggerEventData && TriggerEventData->Target.IsValid())
+					else if (TriggerEventData && IsValid(TriggerEventData->Target))
 					{
 						const IAbilitySystemInterface* TargetASI = Cast<IAbilitySystemInterface>(TriggerEventData->Target.Get());
 						if (TargetASI)
@@ -142,7 +142,7 @@ FName UGA_DataDriven::GetSkillIDFromTags() const
 	if (!Spec) return NAME_None;
 
 	static const FString SkillPrefix(TEXT("Skill."));
-	for (const FGameplayTag& Tag : Spec->DynamicAbilityTags)
+	for (const FGameplayTag& Tag : Spec->GetDynamicSpecSourceTags())
 	{
 		FString TagStr = Tag.GetTagName().ToString();
 		if (TagStr.StartsWith(SkillPrefix))

@@ -31,13 +31,13 @@ public:
 	// ========== 查询接口 ==========
 
 	/** 按 ID 查询技能配置，未找到返回 nullptr */
-	const FSkillConfigRow* GetSkillConfig(FName SkillID) const;
+	const FSkillConfigRow* GetSkillConfig(FName SkillID);
 
 	/** 按 ID 查询技能下所有效果（按表格顺序） */
-	TArray<FSkillEffectRow> GetSkillEffects(FName SkillID) const;
+	TArray<FSkillEffectRow> GetSkillEffects(FName SkillID);
 
 	/** 按 ID 查询 Buff 配置 */
-	const FBuffConfigRow* GetBuffConfig(FName BuffID) const;
+	const FBuffConfigRow* GetBuffConfig(FName BuffID);
 
 	/** 公式求值 */
 	float EvaluateFormula(const FString& Formula, int32 Level = 1, int32 Stacks = 1) const;

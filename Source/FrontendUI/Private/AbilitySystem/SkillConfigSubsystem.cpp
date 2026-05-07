@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/SkillConfigSubsystem.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "GameplayEffect.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
@@ -50,47 +51,46 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 
 	if (UDataTable* DT = LoadTable(SkillConfigTable, TEXT("DT_SkillConfig")))
 	{
-		static const FString ContextStr(TEXT("SkillConfigSubsystem::LoadSkillConfig"));
-		TArray<FSkillConfigRow*> Rows;
-		DT->GetAllRows<FSkillConfigRow>(ContextStr, Rows);
-		for (FSkillConfigRow* Row : Rows)
+		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
-			if (Row) SkillConfigMap.Add(Row->RowName, *Row);
+			if (FSkillConfigRow* Row = reinterpret_cast<FSkillConfigRow*>(Pair.Value))
+			{
+				SkillConfigMap.Add(Pair.Key, *Row);
+			}
 		}
 	}
 
 	if (UDataTable* DT = LoadTable(SkillEffectTable, TEXT("DT_SkillEffect")))
 	{
-		static const FString ContextStr(TEXT("SkillConfigSubsystem::LoadSkillEffect"));
-		TArray<FSkillEffectRow*> Rows;
-		DT->GetAllRows<FSkillEffectRow>(ContextStr, Rows);
-		for (FSkillEffectRow* Row : Rows)
+		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
-			if (!Row) continue;
-			SkillEffectMap.Add(Row->RowName, *Row);
-			SkillToEffectsMap.FindOrAdd(Row->SkillID).Add(Row->RowName);
+			if (FSkillEffectRow* Row = reinterpret_cast<FSkillEffectRow*>(Pair.Value))
+			{
+				SkillEffectMap.Add(Pair.Key, *Row);
+				SkillToEffectsMap.FindOrAdd(Row->SkillID).Add(Pair.Key);
+			}
 		}
 	}
 
 	if (UDataTable* DT = LoadTable(BuffConfigTable, TEXT("DT_BuffConfig")))
 	{
-		static const FString ContextStr(TEXT("SkillConfigSubsystem::LoadBuffConfig"));
-		TArray<FBuffConfigRow*> Rows;
-		DT->GetAllRows<FBuffConfigRow>(ContextStr, Rows);
-		for (FBuffConfigRow* Row : Rows)
+		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
-			if (Row) BuffConfigMap.Add(Row->RowName, *Row);
+			if (FBuffConfigRow* Row = reinterpret_cast<FBuffConfigRow*>(Pair.Value))
+			{
+				BuffConfigMap.Add(Pair.Key, *Row);
+			}
 		}
 	}
 }
 
-const FSkillConfigRow* USkillConfigSubsystem::GetSkillConfig(FName SkillID) const
+const FSkillConfigRow* USkillConfigSubsystem::GetSkillConfig(FName SkillID)
 {
 	EnsureTablesLoaded();
 	return SkillConfigMap.Find(SkillID);
 }
 
-TArray<FSkillEffectRow> USkillConfigSubsystem::GetSkillEffects(FName SkillID) const
+TArray<FSkillEffectRow> USkillConfigSubsystem::GetSkillEffects(FName SkillID)
 {
 	EnsureTablesLoaded();
 
@@ -109,7 +109,7 @@ TArray<FSkillEffectRow> USkillConfigSubsystem::GetSkillEffects(FName SkillID) co
 	return Result;
 }
 
-const FBuffConfigRow* USkillConfigSubsystem::GetBuffConfig(FName BuffID) const
+const FBuffConfigRow* USkillConfigSubsystem::GetBuffConfig(FName BuffID)
 {
 	EnsureTablesLoaded();
 	return BuffConfigMap.Find(BuffID);
