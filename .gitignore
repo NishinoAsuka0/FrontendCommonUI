@@ -20,3 +20,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Art Assets - 纯美术资源，本地保留但不进入 git
+Content/ParagonShinbi/
+Content/Characters/
+Content/Assets/GAS/
+Content/Assets/LevelVisuals/Characters/Mannequins/Textures/
+Content/Assets/LevelVisuals/Characters/Mannequin_UE4/Textures/
+Content/Assets/LevelVisuals/T_*.uasset
+Content/LevelPrototyping/Textures/
