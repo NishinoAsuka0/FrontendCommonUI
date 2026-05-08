@@ -3,42 +3,50 @@
 #pragma once
 #include "NativeGameplayTags.h"
 
+/**
+ * Frontend 全局 GameplayTag 命名空间
+ * 所有 UI 和技能系统标签的集中定义，编译期检查，语义清晰
+ */
 namespace FrontendGameplayTags
 {
-	//Frontend widget stack
+	// ---- UI WidgetStack 容器 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_Modal);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_GameMenu);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_HUD);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_FrontEnd);
-	
-	//Frontend widgets
+
+	// ---- UI 控件 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_PressAnyKeyScreen);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_MainMenuScreen);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_ConfirmScreen);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_StoryScreen);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_GameHUDScreen);
-	
+
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_OptionScreen);
-	
-	//Frontend Options Image
+
+	// ---- Options 界面图片 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Image_TestImage);
 
-	// Skill system tags
+	// ---- 技能标签 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_LightAttack);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Skill_HeavyAttack);
 
+	// ---- 效果类型标签 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Damage);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Heal);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Buff);
 
+	// ---- 消耗类型标签 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cost_HP);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cost_MP);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cost_Energy);
 
+	// ---- 目标类型标签 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Target_Self);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Target_Enemy);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Target_Area);
 
+	// ---- 属性标签 ----
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attr_HP);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attr_MP);
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attr_Energy);

@@ -14,7 +14,7 @@ namespace
 
 void FFrontendUIModule::RegisterEditorTab()
 {
-	// 注册可停靠 Tab
+	// 注册可停靠 Tab：包含 SDataTableImportPanel 面板
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(TabId,
 		FOnSpawnTab::CreateLambda([](const FSpawnTabArgs&) -> TSharedRef<SDockTab>
 		{
@@ -29,7 +29,7 @@ void FFrontendUIModule::RegisterEditorTab()
 		.SetTooltipText(FText::FromString(TEXT("Import JSON files from Content/Config/Json into DataTables.")))
 		.SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.Tabs.Viewports"));
 
-	// 注册 Window 菜单入口
+	// 注册 Window 菜单入口：点击可打开 DataTable Importer
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda([]()
 	{
 		UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Window");

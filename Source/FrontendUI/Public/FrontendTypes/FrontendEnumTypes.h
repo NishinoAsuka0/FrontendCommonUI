@@ -19,10 +19,9 @@ enum class EConfirmScreenButtonType : uint8
 };
 
 UENUM(BlueprintType)
-enum class EStoryButtonType : uint8
+enum class EOptionsListDataModifyReason : uint8
 {
-    NewStory,
-    Continue,
-    NewGamePlus,
-    Unknown UMETA(Hidden)
+    DirectlyModified,
+    DependencyModified,
+    ResetTotDefault,
 };

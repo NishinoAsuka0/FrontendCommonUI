@@ -32,6 +32,7 @@ public class FrontendUI : ModuleRules
 				"Json",
 				"JsonUtilities",
 				"ToolMenus",
+				"DesktopPlatform",
 			});
 		}
 		

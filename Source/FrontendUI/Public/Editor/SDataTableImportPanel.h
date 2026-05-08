@@ -16,6 +16,14 @@ class SScrollBox;
  *
  * 从 Content/Config/Json/ 导入 JSON 到 Content/DataTables/
  */
+
+struct FTableConfig
+{
+	FString JsonPrefix;
+	FString AssetPath;
+	UScriptStruct* RowStruct;
+};
+
 class SDataTableImportPanel : public SCompoundWidget
 {
 public:
@@ -26,6 +34,8 @@ public:
 
 private:
 	void OnImportAllClicked();
+	void OnChooseOneClicked();
+	int LoadDataTable(FString JsonPath, const FTableConfig& Config);
 	void AppendLog(const FString& Message);
 
 	TSharedPtr<STextBlock> LogText;

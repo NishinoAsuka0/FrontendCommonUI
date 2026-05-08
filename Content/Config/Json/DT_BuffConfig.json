@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Bleed",
+    "DisplayName": "NSLOCTEXT(,,出血)",
+    "DurationFormula": "3.0 + 1.0 * Level",
+    "MaxStacks": 5,
+    "ModifierOp": "Additive",
+    "ModifierAttribute": "Attr.HP",
+    "ModifierFormula": "-3 - 0.5 * Level"
+  }
+]

@@ -5,10 +5,10 @@
 
 void UListDataObject_Collection::AddChildListData(UListDataObject_Base* DataObject)
 {
-	//通知子序列初始化自己
+	// 通知子序列初始化自己（设置默认值等）
 	DataObject->InitDataObject();
-	
-	//设置子序列的parent
+
+	// 设置子序列的 Parent 引用
 	DataObject->SetParentData(this);
 	ChildListDataArray.Add(DataObject);
 }

@@ -1,3 +1,0 @@
-Name,SkillID,EffectType,TargetType,BaseValue,ValueScale,ValueAttribute,Duration,Interval,BuffID
-LightAttack_Damage,LightAttack,"(Tag=Effect.Damage)","(Tag=Target.Enemy)",15.0,5.0,"(Tag=Attr.HP)",0.0,0.0,
-HeavyAttack_Damage,HeavyAttack,"(Tag=Effect.Damage)","(Tag=Target.Enemy)",40.0,10.0,"(Tag=Attr.HP)",0.0,0.0,

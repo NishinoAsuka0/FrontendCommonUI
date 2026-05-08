@@ -12,6 +12,10 @@
 class UAbilitySystemComponent;
 class UAbilitySet;
 
+/**
+ * 角色 PlayerState
+ * 持有 ASC（AbilitySystemComponent）并在 BeginPlay 时授予 AbilitySet 中配置的能力
+ */
 UCLASS()
 class FRONTENDUI_API ACharacterState : public APlayerState, public IAbilitySystemInterface
 {
@@ -20,10 +24,11 @@ class FRONTENDUI_API ACharacterState : public APlayerState, public IAbilitySyste
 public:
 	ACharacterState();
 
-	// IAbilitySystemInterface
+	/** 返回持有的 AbilitySystemComponent */
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
+	/** BeginPlay 时授予 AbilitySet 并初始化 ASC 的 ActorInfo */
 	virtual void BeginPlay() override;
 
 private:

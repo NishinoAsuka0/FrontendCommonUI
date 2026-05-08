@@ -23,13 +23,22 @@
 
 ## 项目结构索引
 
-**搜索代码前优先查阅**: [`rules/structure.md`](rules/structure.md)
+**搜索代码前优先查阅**: [`.claude/rules/structure.md`](.claude/rules/structure.md)
 
 该文件记录了：
 - 所有源代码文件路径及描述
 - 配置文件位置
 - 资源文件目录
 - 搜索关键词映射表
+- 搜索缓存（项目外文件路径及时间戳）
+
+### 搜索规则
+
+**重要**: 搜索代码时必须遵守 [`.claude/rules/search.md`](.claude/rules/search.md) 中的规则：
+
+1. **搜索前先检索索引** — 在 `.claude/rules/structure.md` 的关键词映射和搜索缓存中查找
+2. **搜索后记录结果** — 将找到的文件路径记录到 `.claude/rules/structure.md` 的搜索缓存区
+3. **时间戳管理** — 超过一天的缓存记录需重新验证并更新时间戳
 
 ### 结构文件更新规则
 
@@ -44,8 +53,9 @@
 ```
 FrontendUI/
 ├── .claude/                 # Claude 配置
-├── rules/                   # 项目规则与结构索引
-│   └── structure.md         # 代码结构索引文件
+│   └── rules/               # 项目规则与结构索引
+│       ├── structure.md     # 代码结构索引文件
+│       └── search.md        # 搜索规则
 ├── Config/                  # 配置文件
 ├── Content/                 # 资源文件
 ├── Source/                  # 源代码

@@ -45,12 +45,6 @@ void AInGamePlayerController::SetupInputComponent()
 	if (LookAction)
 	{
 		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AInGamePlayerController::OnLookTriggered);
-
-		// [DEBUG] 把 Look 的所有触发事件都接管，看哪个事件会发，反推 IA_MouseLook 的 Trigger 配置
-		EIC->BindAction(LookAction, ETriggerEvent::Started,   this, &AInGamePlayerController::OnLookEvtStarted);
-		EIC->BindAction(LookAction, ETriggerEvent::Ongoing,   this, &AInGamePlayerController::OnLookEvtOngoing);
-		EIC->BindAction(LookAction, ETriggerEvent::Completed, this, &AInGamePlayerController::OnLookEvtCompleted);
-		EIC->BindAction(LookAction, ETriggerEvent::Canceled,  this, &AInGamePlayerController::OnLookEvtCanceled);
 	}
 	if (JumpAction)
 	{
@@ -116,37 +110,12 @@ void AInGamePlayerController::OnUnPossess()
 void AInGamePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("[InGamePC.BeginPlay] AInGamePlayerController is running, class=%s"), *GetClass()->GetName());
 }
 
-// [DEBUG] BeginPlay 已存在；此处补全 4 个 Look 事件分支的探针函数
-void AInGamePlayerController::OnLookEvtStarted(const FInputActionValue& Value)
-{
-	DebugHelper::Print(FString::Printf(TEXT("[Look:Started]   %s"), *Value.Get<FVector2D>().ToString()), 1010, FColor::Magenta);
-}
-void AInGamePlayerController::OnLookEvtOngoing(const FInputActionValue& Value)
-{
-	DebugHelper::Print(FString::Printf(TEXT("[Look:Ongoing]   %s"), *Value.Get<FVector2D>().ToString()), 1011, FColor::Magenta);
-}
-void AInGamePlayerController::OnLookEvtCompleted(const FInputActionValue& Value)
-{
-	DebugHelper::Print(FString::Printf(TEXT("[Look:Completed] %s"), *Value.Get<FVector2D>().ToString()), 1013, FColor::Magenta);
-}
-void AInGamePlayerController::OnLookEvtCanceled(const FInputActionValue& Value)
-{
-	DebugHelper::Print(FString::Printf(TEXT("[Look:Canceled]  %s"), *Value.Get<FVector2D>().ToString()), 1012, FColor::Magenta);
-}
 
 void AInGamePlayerController::OnMoveTriggered(const FInputActionValue& Value)
 {
 	APawn* P = GetPawn();
-
-	// [DEBUG] 验证 WASD 输入是否到达 Controller，以及 Pawn 类型
-	DebugHelper::Print(FString::Printf(
-		TEXT("[InGamePC.OnMove] axis=%s | pawn=%s"),
-		*Value.Get<FVector2D>().ToString(),
-		P ? *P->GetClass()->GetName() : TEXT("NULL")),
-		1003, FColor::Orange);
 
 	// 转发给 Character：方向矩阵、Pitch 过滤、零输入早退都在 ABaseCharacter::Move 内部
 	// Cast 失败（Pawn 不是 ABaseCharacter，例如 SpectatorPawn）时早退，无崩溃
@@ -159,13 +128,6 @@ void AInGamePlayerController::OnMoveTriggered(const FInputActionValue& Value)
 void AInGamePlayerController::OnLookTriggered(const FInputActionValue& Value)
 {
 	APawn* P = GetPawn();
-
-	// [DEBUG] 验证：① 鼠标输入是否到了 Controller；② Pawn 是不是 ABaseCharacter（Cast 失败也能从这里看出来）
-	DebugHelper::Print(FString::Printf(
-		TEXT("[InGamePC.OnLook] axis=%s | pawn=%s"),
-		*Value.Get<FVector2D>().ToString(),
-		P ? *P->GetClass()->GetName() : TEXT("NULL")),
-		1002, FColor::Yellow);
 
 	if (ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(P))
 	{

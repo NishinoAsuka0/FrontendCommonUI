@@ -8,6 +8,7 @@
 
 ACharacterState::ACharacterState()
 {
+	// 创建 ASC 子对象，使其与 PlayerState 同生命周期
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
 
@@ -25,6 +26,7 @@ void ACharacterState::BeginPlay()
 		return;
 	}
 
+	// 遍历所有 AbilitySet，逐一授予 ASC（Ability、GE、AttributeSet）
 	for (const TObjectPtr<UAbilitySet>& Set : AbilitySets)
 	{
 		if (Set)
@@ -33,6 +35,7 @@ void ACharacterState::BeginPlay()
 		}
 	}
 
+	// 初始化 ASC 的 ActorInfo（Owner = PlayerState, Avatar = Pawn）
 	APawn* Pawn = GetPawn();
 	if (Pawn)
 	{

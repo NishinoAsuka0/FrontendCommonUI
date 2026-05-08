@@ -1,0 +1,28 @@
+[
+  {
+    "Name": "LightAttack",
+    "SkillType": "Skill.LightAttack",
+    "DisplayName": "NSLOCTEXT(,,轻攻击)",
+    "MaxLevel": 5,
+    "CooldownFormula": 0.5,
+    "CostType": "Cost.Energy",
+    "CostFormula": 5,
+    "CastRange": 150,
+    "CastTime": 0,
+    "AbilityTags": "Ability.Melee.Light",
+    "bGrantToASC": true
+  },
+  {
+    "Name": "HeavyAttack",
+    "SkillType": "Skill.HeavyAttack",
+    "DisplayName": "NSLOCTEXT(,,轻攻击)",
+    "MaxLevel": 5,
+    "CooldownFormula": 2,
+    "CostType": "Cost.Energy",
+    "CostFormula": 15,
+    "CastRange": 250,
+    "CastTime": 0.5,
+    "AbilityTags": "Ability.Melee.Heavy",
+    "bGrantToASC": true
+  }
+]

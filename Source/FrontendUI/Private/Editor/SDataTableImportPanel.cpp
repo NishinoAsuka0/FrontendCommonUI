@@ -3,6 +3,8 @@
 #include "Editor/SDataTableImportPanel.h"
 
 #if WITH_EDITOR
+#include "DesktopPlatformModule.h"
+#include "IDesktopPlatform.h"
 #include "AbilitySystem/SkillConfigTypes.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/DataTable.h"
@@ -16,15 +18,8 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-namespace
+namespace DataImport
 {
-	struct FTableConfig
-	{
-		FString JsonPrefix;
-		FString AssetPath;
-		UScriptStruct* RowStruct;
-	};
-
 	TArray<FTableConfig> GetTableConfigs()
 	{
 		return {
@@ -118,15 +113,22 @@ void SDataTableImportPanel::Construct(const FArguments& InArgs)
 				SNew(SButton).Text(FText::FromString(TEXT("Import All")))
 				.OnClicked_Lambda([this]() { OnImportAllClicked(); return FReply::Handled(); })
 			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+			[
+				SNew(SButton).Text(FText::FromString(TEXT("Choose One Json")))
+				.OnClicked_Lambda([this]() { OnChooseOneClicked(); return FReply::Handled(); })
+			]
 		]
 		+ SVerticalBox::Slot().FillHeight(1).Padding(8, 0, 8, 8)
 		[
-			SNew(SScrollBox)
-			+ SScrollBox::Slot()
-			[
-				SAssignNew(LogText, STextBlock)
-				.Text(FText::FromString(TEXT("Ready.\n")))
-				.AutoWrapText(true)
+			SNew(SBorder)[
+				SNew(SScrollBox)
+				+ SScrollBox::Slot()
+				[
+					SAssignNew(LogText, STextBlock)
+					.Text(FText::FromString(TEXT("Ready.\n")))
+					.AutoWrapText(true)
+				]
 			]
 		]
 	];
@@ -145,56 +147,107 @@ void SDataTableImportPanel::OnImportAllClicked()
 	LogLines.Empty();
 	AppendLog(TEXT("=== DataTable Import ==="));
 
-	const FString JsonDir = GetJsonDirectory();
+	const FString JsonDir =  DataImport::GetJsonDirectory();
 	if (!IFileManager::Get().DirectoryExists(*JsonDir))
 	{
 		AppendLog(FString::Printf(TEXT("[Error] JSON dir not found: %s"), *JsonDir));
 		return;
 	}
 
-	const TArray<FTableConfig> Configs = GetTableConfigs();
+	const TArray<FTableConfig> Configs = DataImport::GetTableConfigs();
 	int32 TotalRows = 0;
 
 	for (const FTableConfig& Config : Configs)
 	{
 		const FString JsonPath = JsonDir / Config.JsonPrefix + TEXT(".json");
-		if (!FPaths::FileExists(JsonPath))
-		{
-			AppendLog(FString::Printf(TEXT("[Skip]  %s - JSON missing"), *Config.JsonPrefix));
-			continue;
-		}
-
-		FString JsonContent;
-		if (!FFileHelper::LoadFileToString(JsonContent, *JsonPath))
-		{
-			AppendLog(FString::Printf(TEXT("[Fail]  %s - Read error"), *Config.JsonPrefix));
-			continue;
-		}
-
-		UDataTable* DataTable = GetOrCreateDataTable(Config.AssetPath, Config.RowStruct);
-		if (!DataTable)
-		{
-			AppendLog(FString::Printf(TEXT("[Fail]  %s - Create error"), *Config.JsonPrefix));
-			continue;
-		}
-
-		const int32 Count = ImportJsonToDataTable(DataTable, JsonContent, Config.RowStruct);
-		if (Count < 0)
-		{
-			AppendLog(FString::Printf(TEXT("[Fail]  %s - JSON parse error"), *Config.JsonPrefix));
-			continue;
-		}
-
-		if (!SaveDataTableAsset(DataTable, Config.AssetPath))
-		{
-			AppendLog(FString::Printf(TEXT("[Fail]  %s - Save error"), *Config.JsonPrefix));
-			continue;
-		}
-
-		TotalRows += Count;
-		AppendLog(FString::Printf(TEXT("[OK]    %-20s  %3d rows"), *Config.JsonPrefix, Count));
+		TotalRows += LoadDataTable(JsonPath, Config);
 	}
 
 	AppendLog(FString::Printf(TEXT("\nTotal: %d rows imported."), TotalRows));
+}
+
+void SDataTableImportPanel::OnChooseOneClicked()
+{
+	LogLines.Empty();
+	AppendLog(TEXT("=== DataTable Import ==="));
+
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (!DesktopPlatform) return;
+	
+
+	const TArray<FTableConfig> Configs = DataImport::GetTableConfigs();
+	int32 TotalRows = 0;
+
+	TArray<FString> OutFiles;
+	const FString DefaultPath = FPaths::ProjectContentDir();
+	const void* ParentWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+	
+	FString SelectedFilePath = "";
+	
+	bool bOpened = DesktopPlatform->OpenFileDialog(
+		ParentWindowHandle,
+		TEXT("选择 JSON 文件"),   // 标题
+		DefaultPath,              // 初始目录
+		TEXT(""),                 // 默认文件名
+		TEXT("JSON 文件|*.json"), // 文件过滤器
+		EFileDialogFlags::None,   // 单选
+		OutFiles
+	);
+
+	if (bOpened && OutFiles.Num() > 0)
+	{
+		SelectedFilePath = OutFiles[0]; // 保存路径
+	}
+	
+	const FString JsonDir =  DataImport::GetJsonDirectory();
+
+	for (const FTableConfig& Config : Configs)
+	{
+		const FString JsonPath = JsonDir / Config.JsonPrefix + TEXT(".json");
+		if (JsonPath == SelectedFilePath)
+		{
+			LoadDataTable(JsonPath, Config);
+		}
+	}
+}
+
+int SDataTableImportPanel::LoadDataTable(FString JsonPath, const FTableConfig& Config)
+{
+	if (!FPaths::FileExists(JsonPath))
+	{
+		AppendLog(FString::Printf(TEXT("[Skip]  %s - JSON missing"), *Config.JsonPrefix));
+		return 0;
+	}
+
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *JsonPath))
+	{
+		AppendLog(FString::Printf(TEXT("[Fail]  %s - Read error"), *Config.JsonPrefix));
+		return 0;
+	}
+
+	UDataTable* DataTable = DataImport::GetOrCreateDataTable(Config.AssetPath, Config.RowStruct);
+	if (!DataTable)
+	{
+		AppendLog(FString::Printf(TEXT("[Fail]  %s - Create error"), *Config.JsonPrefix));
+		return 0;
+	}
+
+	const int32 Count =  DataImport::ImportJsonToDataTable(DataTable, JsonContent, Config.RowStruct);
+	if (Count < 0)
+	{
+		AppendLog(FString::Printf(TEXT("[Fail]  %s - JSON parse error"), *Config.JsonPrefix));
+		return 0;
+	}
+
+	if (!DataImport::SaveDataTableAsset(DataTable, Config.AssetPath))
+	{
+		AppendLog(FString::Printf(TEXT("[Fail]  %s - Save error"), *Config.JsonPrefix));
+		return 0;
+	}
+	
+	AppendLog(FString::Printf(TEXT("[OK]    %-20s  %3d rows"), *Config.JsonPrefix, Count));
+	
+	return Count;
 }
 #endif

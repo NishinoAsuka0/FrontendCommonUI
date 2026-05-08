@@ -1,3 +1,0 @@
-Name,SkillType,DisplayName,Icon,MaxLevel,CooldownFormula,CostType,CostFormula,CastRange,CastTime,AbilityTags,bGrantToASC
-LightAttack,"(Tag=Skill.LightAttack)",NSLOCTEXT("","","轻攻击"),,5,0.5,"(Tag=Cost.Energy)",5.0,150.0,0.0,"(Tags=Ability.Melee.Light)",true
-HeavyAttack,"(Tag=Skill.HeavyAttack)",NSLOCTEXT("","","重攻击"),,5,2.0,"(Tag=Cost.Energy)",15.0,250.0,0.5,"(Tags=Ability.Melee.Heavy)",true
