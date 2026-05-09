@@ -2,22 +2,34 @@
   {
     "Name": "LightAttack_Damage",
     "SkillID": "LightAttack",
-    "EffectType": "Effect.Damage",
-    "TargetType": "Target.Enemy",
+    "EffectType": {
+      "TagName": "Effect.Damage"
+    },
+    "TargetType": {
+      "TagName": "Target.Enemy"
+    },
     "BaseValue": 15,
     "ValueScale": 5,
-    "ValueAttribute": "Attr.HP",
+    "ValueAttribute": {
+      "TagName": "Attr.HP"
+    },
     "Duration": 0,
     "Interval": 0
   },
   {
     "Name": "HeavyAttack_Damage",
     "SkillID": "HeavyAttack",
-    "EffectType": "Effect.Damage",
-    "TargetType": "Target.Enemy",
+    "EffectType": {
+      "TagName": "Effect.Damage"
+    },
+    "TargetType": {
+      "TagName": "Target.Enemy"
+    },
     "BaseValue": 40,
     "ValueScale": 10,
-    "ValueAttribute": "Attr.HP",
+    "ValueAttribute": {
+      "TagName": "Attr.HP"
+    },
     "Duration": 0,
     "Interval": 0
   }

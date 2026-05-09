@@ -3,9 +3,8 @@
 #include "AbilitySystem/SkillGameplayAbility.h"
 #include "AbilitySystem/SkillConfigSubsystem.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "GameplayEffect.h"
-#include "FrontendGamePlayTags.h"
+#include "GameFramework/Character.h"
+#include "Animation/AnimMontage.h"
 
 void UGA_DataDriven::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -40,86 +39,13 @@ void UGA_DataDriven::ActivateAbility(
 	}
 	CachedSkillConfig = *Config;
 
-	const TArray<FSkillEffectRow> Effects = Subsystem->GetSkillEffects(SkillID);
-
-	AActor* Owner = ActorInfo->AvatarActor.Get();
-	UAbilitySystemComponent* OwnerASC = ActorInfo->AbilitySystemComponent.Get();
-
-	for (const FSkillEffectRow& Effect : Effects)
+	if (!CachedSkillConfig.AttackMontage.IsNull())
 	{
-		float EvaluatedValue = Subsystem->EvaluateFormula(
-			FString::Printf(TEXT("%.1f + %.1f * Level"), Effect.BaseValue, Effect.ValueScale),
-			SkillLevel);
-
-		FGameplayTag EffectType = Effect.EffectType;
-		FGameplayTag TargetType = Effect.TargetType;
-
-		if (EffectType.MatchesTag(FrontendGameplayTags::Effect_Damage))
+		if (UAnimMontage* Montage = CachedSkillConfig.AttackMontage.LoadSynchronous())
 		{
-			if (TargetType.MatchesTag(FrontendGameplayTags::Target_Enemy) && TriggerEventData)
+			if (ACharacter* AvatarChar = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 			{
-				if (AActor* Target = const_cast<AActor*>(TriggerEventData->Target.Get()))
-				{
-					if (const IAbilitySystemInterface* TargetASI = Cast<IAbilitySystemInterface>(Target))
-					{
-						if (UAbilitySystemComponent* TargetASC = TargetASI->GetAbilitySystemComponent())
-						{
-							FGameplayEffectSpecHandle Spec = Subsystem->MakeEffectSpec(
-								Effect, EvaluatedValue, Owner, TargetASC);
-							if (Spec.IsValid())
-							{
-								TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-							}
-						}
-					}
-				}
-			}
-		}
-		else if (EffectType.MatchesTag(FrontendGameplayTags::Effect_Heal))
-		{
-			if (TargetType.MatchesTag(FrontendGameplayTags::Target_Self))
-			{
-				FGameplayEffectSpecHandle Spec = Subsystem->MakeEffectSpec(
-					Effect, EvaluatedValue, Owner, OwnerASC);
-				if (Spec.IsValid())
-				{
-					OwnerASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-				}
-			}
-		}
-		else if (EffectType.MatchesTag(FrontendGameplayTags::Effect_Buff))
-		{
-			if (!Effect.BuffID.IsNone())
-			{
-				const FBuffConfigRow* BuffRow = Subsystem->GetBuffConfig(Effect.BuffID);
-				if (BuffRow)
-				{
-					float ModifierValue = Subsystem->EvaluateFormula(BuffRow->ModifierFormula, SkillLevel);
-					float Duration = Subsystem->EvaluateFormula(BuffRow->DurationFormula, SkillLevel);
-
-					UAbilitySystemComponent* TargetASC = nullptr;
-					if (TargetType.MatchesTag(FrontendGameplayTags::Target_Self))
-					{
-						TargetASC = OwnerASC;
-					}
-					else if (TriggerEventData && IsValid(TriggerEventData->Target))
-					{
-						const IAbilitySystemInterface* TargetASI = Cast<IAbilitySystemInterface>(TriggerEventData->Target.Get());
-						if (TargetASI)
-						{
-							TargetASC = TargetASI->GetAbilitySystemComponent();
-						}
-					}
-
-					if (TargetASC)
-					{
-						FGameplayEffectSpecHandle Spec = Subsystem->MakeBuffSpec(*BuffRow, ModifierValue, Duration, Owner);
-						if (Spec.IsValid())
-						{
-							TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-						}
-					}
-				}
+				AvatarChar->PlayAnimMontage(Montage);
 			}
 		}
 	}

@@ -71,15 +71,16 @@ def parse_cell_value(value):
     if s.lower() == "false":
         return False
 
-    # (Tag=xxx) → 提取 Tag 字符串
+    # (Tag=xxx) → {"TagName": "xxx"}
     m = re.match(r"^\(Tag=(.+)\)$", s)
     if m:
-        return m.group(1)
+        return {"TagName": m.group(1)}
 
-    # (Tags=xxx|yyy) → 提取 Tags 字符串
+    # (Tags=xxx|yyy) → {"GameplayTags": [{"TagName": "xxx"}, {"TagName": "yyy"}]}
     m = re.match(r"^\(Tags=(.+)\)$", s)
     if m:
-        return m.group(1)
+        tags = [t.strip() for t in m.group(1).split("|") if t.strip()]
+        return {"GameplayTags": [{"TagName": t} for t in tags]}
 
     # 纯数字字符串
     num = parse_number(s)
@@ -144,7 +145,7 @@ def main():
 
     total = 0
     for name in sorted(os.listdir(DATA_DIR)):
-        if not name.endswith(".xlsx"):
+        if not name.endswith(".xlsx") or name.startswith("~$"):
             continue
 
         xlsx_path = os.path.join(DATA_DIR, name)

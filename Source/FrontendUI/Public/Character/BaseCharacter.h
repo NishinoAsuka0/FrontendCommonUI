@@ -150,18 +150,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<UAbilitySet>> FallbackAbilitySets;
 
-	/** 伤害 GE 类：通过 SetByCaller 传入伤害值，修改目标的 IncomingDamage 属性 */
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass;
-
-	/** 轻攻击 Tag：输入按下时通过 ASC 激活匹配此 Tag 的 Ability */
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (Categories = "Ability.Activate"))
-	FGameplayTag LightAttackAbilityTag;
-
-	/** 重攻击 Tag：输入按下时通过 ASC 激活匹配此 Tag 的 Ability */
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS", meta = (Categories = "Ability.Activate"))
-	FGameplayTag HeavyAttackAbilityTag;
-
 	/** 轻攻击对应的 SkillID（查询 SkillConfigSubsystem 用） */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|GAS")
 	FName LightAttackSkillID = "LightAttack";
@@ -212,5 +200,8 @@ private:
 	 */
 	void ApplyStrafeMode(bool bEnable);
 	
+	/** 当前发起攻击的技能 ID，OnAttackHit 时读取 */
+	FName ActiveSkillID;
+
 	bool bIsJumping = false;
 };

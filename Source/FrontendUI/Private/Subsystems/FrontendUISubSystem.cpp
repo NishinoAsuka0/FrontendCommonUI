@@ -54,6 +54,12 @@ TSoftClassPtr<UWidget_ActivatableBase> InSoftWidgetClass, TFunction<void(EAsyncP
 				UClass* LoadClass = InSoftWidgetClass.Get();
 				check(LoadClass);
 
+				if (!IsValid(CreatedPrimaryLayoutWidget))
+				{
+					UE_LOG(LogTemp, Error, TEXT("[FrontendUISubSystem] PrimaryLayout not registered, cannot push widget."));
+					return;
+				}
+
 				// 按 GameplayTag 查找对应的 WidgetStack
 				UCommonActivatableWidgetContainerBase* foundWidgetStack = CreatedPrimaryLayoutWidget->FindWidgetStackByTag(tag);
 

@@ -13,8 +13,8 @@ class UAbilitySystemComponent;
  * 技能配置子系统
  *
  * GameInstance 级单例，跨关卡存活。
- * 初始化时加载 DT_SkillConfig / DT_SkillEffect / DT_BuffConfig 三个 DataTable，
- * 缓存为 TMap 供运行时 O(1) 查询。
+ * 初始化时从 UFrontendDeveloperSettings 读取 DataTable 路径，
+ * 懒加载后缓存为 TMap 供运行时 O(1) 查询。
  */
 UCLASS()
 class FRONTENDUI_API USkillConfigSubsystem : public UGameInstanceSubsystem
@@ -56,39 +56,13 @@ public:
 		float EvaluatedDuration,
 		UObject* SourceObject) const;
 
-	// ========== 配置资源路径 ==========
-
-	/** 技能定义 DataTable 软引用 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSoftObjectPtr<UDataTable> SkillConfigTable;
-
-	/** 技能效果 DataTable 软引用 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSoftObjectPtr<UDataTable> SkillEffectTable;
-
-	/** Buff DataTable 软引用 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSoftObjectPtr<UDataTable> BuffConfigTable;
-
-	/** 通用伤害 GE 类 — 通过 SetByCaller 注入伤害值 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSubclassOf<class UGameplayEffect> DamageGEClass;
-
-	/** 通用治疗 GE 类 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSubclassOf<class UGameplayEffect> HealGEClass;
-
-	/** 通用 Buff GE 类 — 用于创建持续效果 */
-	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	TSubclassOf<class UGameplayEffect> BuffGEClass;
-
 private:
-	/** 确保 DataTable 已加载（懒加载） */
+	/** 确保 DataTable 已加载（懒加载，从 UFrontendDeveloperSettings 读取路径） */
 	void EnsureTablesLoaded();
 
-	mutable TMap<FName, FSkillConfigRow> SkillConfigMap;
-	mutable TMap<FName, FSkillEffectRow> SkillEffectMap;
-	mutable TMap<FName, FBuffConfigRow> BuffConfigMap;
-	mutable TMap<FName, TArray<FName>> SkillToEffectsMap;
-	mutable bool bTablesLoaded = false;
+	TMap<FName, FSkillConfigRow> SkillConfigMap;
+	TMap<FName, FSkillEffectRow> SkillEffectMap;
+	TMap<FName, FBuffConfigRow> BuffConfigMap;
+	TMap<FName, TArray<FName>> SkillToEffectsMap;
+	bool bTablesLoaded = false;
 };

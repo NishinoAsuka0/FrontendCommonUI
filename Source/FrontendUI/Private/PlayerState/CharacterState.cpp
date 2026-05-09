@@ -21,24 +21,13 @@ void ACharacterState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!AbilitySystemComponent)
-	{
-		return;
-	}
+	if (!AbilitySystemComponent) return;
 
-	// 遍历所有 AbilitySet，逐一授予 ASC（Ability、GE、AttributeSet）
 	for (const TObjectPtr<UAbilitySet>& Set : AbilitySets)
 	{
 		if (Set)
 		{
 			Set->GiveToAbilitySystem(AbilitySystemComponent, this);
 		}
-	}
-
-	// 初始化 ASC 的 ActorInfo（Owner = PlayerState, Avatar = Pawn）
-	APawn* Pawn = GetPawn();
-	if (Pawn)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, Pawn);
 	}
 }

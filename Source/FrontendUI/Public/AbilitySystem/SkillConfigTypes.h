@@ -59,6 +59,10 @@ struct FRONTENDUI_API FSkillConfigRow : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Ability.Activate"))
 	FGameplayTagContainer AbilityTags;
 
+	/** 攻击蒙太奇（软引用，激活时同步加载并播放） */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSoftObjectPtr<UAnimMontage> AttackMontage;
+
 	/** 是否在 AbilitySet 授予时自动注册到 ASC */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool bGrantToASC = true;

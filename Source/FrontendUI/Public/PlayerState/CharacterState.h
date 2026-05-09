@@ -28,7 +28,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
-	/** BeginPlay 时授予 AbilitySet 并初始化 ASC 的 ActorInfo */
+	/** BeginPlay 时授予 AbilitySet */
 	virtual void BeginPlay() override;
 
 private:

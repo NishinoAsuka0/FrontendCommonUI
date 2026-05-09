@@ -7,6 +7,7 @@
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 #include "FrontendGamePlayTags.h"
+#include "FrontendSettings/FrontendDeveloperSettings.h"
 
 USkillConfigSubsystem* USkillConfigSubsystem::Get(const UObject* WorldContext)
 {
@@ -38,7 +39,10 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 	if (bTablesLoaded) return;
 	bTablesLoaded = true;
 
-	auto LoadTable = [](TSoftObjectPtr<UDataTable>& SoftPtr, const TCHAR* TableName) -> UDataTable*
+	const UFrontendDeveloperSettings* Settings = GetDefault<UFrontendDeveloperSettings>();
+	if (!Settings) return;
+
+	auto LoadTable = [](const TSoftObjectPtr<UDataTable>& SoftPtr, const TCHAR* TableName) -> UDataTable*
 	{
 		if (SoftPtr.IsNull()) return nullptr;
 		UDataTable* DT = SoftPtr.LoadSynchronous();
@@ -49,7 +53,7 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 		return DT;
 	};
 
-	if (UDataTable* DT = LoadTable(SkillConfigTable, TEXT("DT_SkillConfig")))
+	if (UDataTable* DT = LoadTable(Settings->SkillConfigTable, TEXT("DT_SkillConfig")))
 	{
 		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
@@ -60,7 +64,7 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 		}
 	}
 
-	if (UDataTable* DT = LoadTable(SkillEffectTable, TEXT("DT_SkillEffect")))
+	if (UDataTable* DT = LoadTable(Settings->SkillEffectTable, TEXT("DT_SkillEffect")))
 	{
 		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
@@ -72,7 +76,7 @@ void USkillConfigSubsystem::EnsureTablesLoaded()
 		}
 	}
 
-	if (UDataTable* DT = LoadTable(BuffConfigTable, TEXT("DT_BuffConfig")))
+	if (UDataTable* DT = LoadTable(Settings->BuffConfigTable, TEXT("DT_BuffConfig")))
 	{
 		for (const TPair<FName, uint8*>& Pair : DT->GetRowMap())
 		{
@@ -127,15 +131,18 @@ FGameplayEffectSpecHandle USkillConfigSubsystem::MakeEffectSpec(
 	AActor* SourceActor,
 	UAbilitySystemComponent* TargetASC) const
 {
+	const UFrontendDeveloperSettings* Settings = GetDefault<UFrontendDeveloperSettings>();
+	if (!Settings) return FGameplayEffectSpecHandle();
+
 	TSubclassOf<UGameplayEffect> GEClass;
 
 	if (EffectRow.EffectType.MatchesTag(FrontendGameplayTags::Effect_Damage))
 	{
-		GEClass = DamageGEClass;
+		GEClass = Settings->DamageGEClass;
 	}
 	else if (EffectRow.EffectType.MatchesTag(FrontendGameplayTags::Effect_Heal))
 	{
-		GEClass = HealGEClass;
+		GEClass = Settings->HealGEClass;
 	}
 
 	if (!GEClass || !SourceActor) return FGameplayEffectSpecHandle();
@@ -162,7 +169,8 @@ FGameplayEffectSpecHandle USkillConfigSubsystem::MakeBuffSpec(
 	float EvaluatedDuration,
 	UObject* SourceObject) const
 {
-	if (!BuffGEClass || !SourceObject) return FGameplayEffectSpecHandle();
+	const UFrontendDeveloperSettings* Settings = GetDefault<UFrontendDeveloperSettings>();
+	if (!Settings || !Settings->BuffGEClass || !SourceObject) return FGameplayEffectSpecHandle();
 
 	AActor* SourceActor = Cast<AActor>(SourceObject);
 	if (!SourceActor) return FGameplayEffectSpecHandle();
@@ -175,7 +183,7 @@ FGameplayEffectSpecHandle USkillConfigSubsystem::MakeBuffSpec(
 
 	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 	Context.AddSourceObject(SourceActor);
-	FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(BuffGEClass, 1.f, Context);
+	FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(Settings->BuffGEClass, 1.f, Context);
 
 	if (Spec.IsValid() && EvaluatedDuration > 0.f)
 	{

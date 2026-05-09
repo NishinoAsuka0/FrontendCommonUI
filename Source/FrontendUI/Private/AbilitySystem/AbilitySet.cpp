@@ -33,6 +33,14 @@ void UAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* ASC, UObject* Sou
 		ASC->GiveAbility(Spec);
 	}
 
+	// 2) 创建 AttributeSet
+	for (const FAbilitySet_AttributeSet& Entry : GrantedAttributes)
+	{
+		if (!Entry.AttributeSet) continue;
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(ASC->GetOwner(), Entry.AttributeSet);
+		ASC->AddSpawnedAttribute(NewSet);
+	}
+
 	// 3) 应用 GameplayEffect（立即生效，通常用于属性初始化）
 	for (const FAbilitySet_GameplayEffect& Entry : GrantedEffects)
 	{

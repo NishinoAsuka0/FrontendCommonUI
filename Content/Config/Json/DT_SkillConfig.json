@@ -1,28 +1,49 @@
 [
   {
     "Name": "LightAttack",
-    "SkillType": "Skill.LightAttack",
+    "SkillType": {
+      "TagName": "Skill.LightAttack"
+    },
     "DisplayName": "NSLOCTEXT(,,轻攻击)",
     "MaxLevel": 5,
     "CooldownFormula": 0.5,
-    "CostType": "Cost.Energy",
+    "CostType": {
+      "TagName": "Cost.Energy"
+    },
     "CostFormula": 5,
     "CastRange": 150,
     "CastTime": 0,
-    "AbilityTags": "Ability.Melee.Light",
+    "AttackMontage": "/Script/Engine.AnimMontage'/Game/Gameplay/Player/Montage/MA_Melee.MA_Melee'",
+    "AbilityTags": {
+      "GameplayTags": [
+        {
+          "TagName": "Ability.Melee.Light"
+        }
+      ]
+    },
     "bGrantToASC": true
   },
   {
     "Name": "HeavyAttack",
-    "SkillType": "Skill.HeavyAttack",
+    "SkillType": {
+      "TagName": "Skill.HeavyAttack"
+    },
     "DisplayName": "NSLOCTEXT(,,轻攻击)",
     "MaxLevel": 5,
     "CooldownFormula": 2,
-    "CostType": "Cost.Energy",
+    "CostType": {
+      "TagName": "Cost.Energy"
+    },
     "CostFormula": 15,
     "CastRange": 250,
     "CastTime": 0.5,
-    "AbilityTags": "Ability.Melee.Heavy",
+    "AbilityTags": {
+      "GameplayTags": [
+        {
+          "TagName": "Ability.Melee.Heavy"
+        }
+      ]
+    },
     "bGrantToASC": true
   }
 ]

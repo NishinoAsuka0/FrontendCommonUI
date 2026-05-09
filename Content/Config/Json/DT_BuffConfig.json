@@ -5,7 +5,9 @@
     "DurationFormula": "3.0 + 1.0 * Level",
     "MaxStacks": 5,
     "ModifierOp": "Additive",
-    "ModifierAttribute": "Attr.HP",
+    "ModifierAttribute": {
+      "TagName": "Attr.HP"
+    },
     "ModifierFormula": "-3 - 0.5 * Level"
   }
 ]
