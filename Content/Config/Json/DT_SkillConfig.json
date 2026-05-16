@@ -4,7 +4,7 @@
     "SkillType": {
       "TagName": "Skill.LightAttack"
     },
-    "DisplayName": "NSLOCTEXT(,,轻攻击)",
+    "DisplayName": "轻攻击",
     "MaxLevel": 5,
     "CooldownFormula": 0.5,
     "CostType": {
@@ -28,7 +28,7 @@
     "SkillType": {
       "TagName": "Skill.HeavyAttack"
     },
-    "DisplayName": "NSLOCTEXT(,,轻攻击)",
+    "DisplayName": "重攻击",
     "MaxLevel": 5,
     "CooldownFormula": 2,
     "CostType": {
@@ -41,6 +41,30 @@
       "GameplayTags": [
         {
           "TagName": "Ability.Melee.Heavy"
+        }
+      ]
+    },
+    "bGrantToASC": true
+  },
+  {
+    "Name": "Healing",
+    "SkillType": {
+      "TagName": "Skill.Healing"
+    },
+    "DisplayName": "Heal",
+    "Icon": "/Script/Engine.Texture2D'/Game/Assets/UI/Icons/HealthRegen.HealthRegen'",
+    "MaxLevel": 5,
+    "CooldownFormula": 4,
+    "CostType": {
+      "TagName": "Cost.MP"
+    },
+    "CostFormula": 15,
+    "CastRange": 0,
+    "CastTime": 0,
+    "AbilityTags": {
+      "GameplayTags": [
+        {
+          "TagName": "Skill.Healing"
         }
       ]
     },

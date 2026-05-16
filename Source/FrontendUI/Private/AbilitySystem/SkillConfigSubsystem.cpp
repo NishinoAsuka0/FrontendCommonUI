@@ -125,6 +125,22 @@ float USkillConfigSubsystem::EvaluateFormula(const FString& Formula, int32 Level
 	return FFormulaEvaluator::Evaluate(Formula, Level, Stacks);
 }
 
+float USkillConfigSubsystem::GetSkillCooldownTimeRemaining(FName SkillID, UAbilitySystemComponent* ASC) const
+{
+	if (!ASC || SkillID.IsNone()) return 0.f;
+
+	const FName TagName = FName(*(FString(TEXT("Cooldown.Skill.")) + SkillID.ToString()));
+	const FGameplayTag CooldownTag = FGameplayTag::RequestGameplayTag(TagName, false);
+	if (!CooldownTag.IsValid()) return 0.f;
+
+	// MakeQuery_MatchAnyOwningTags 会检查 Spec::GetAllGrantedTags()，包含 DynamicGrantedTags
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(
+		FGameplayTagContainer(CooldownTag));
+
+	TArray<float> Times = ASC->GetActiveEffectsTimeRemaining(Query);
+	return Times.Num() > 0 ? FMath::Max(0.f, Times[0]) : 0.f;
+}
+
 FGameplayEffectSpecHandle USkillConfigSubsystem::MakeEffectSpec(
 	const FSkillEffectRow& EffectRow,
 	float EvaluatedValue,
@@ -142,7 +158,9 @@ FGameplayEffectSpecHandle USkillConfigSubsystem::MakeEffectSpec(
 	}
 	else if (EffectRow.EffectType.MatchesTag(FrontendGameplayTags::Effect_Heal))
 	{
-		GEClass = Settings->HealGEClass;
+		// 复用 DamageGEClass：负值 IncomingDamage 在 AttributeSet 中被当作回血处理
+		GEClass = Settings->DamageGEClass;
+		EvaluatedValue = -FMath::Abs(EvaluatedValue);
 	}
 
 	if (!GEClass || !SourceActor) return FGameplayEffectSpecHandle();
@@ -154,6 +172,38 @@ FGameplayEffectSpecHandle USkillConfigSubsystem::MakeEffectSpec(
 	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 	Context.AddSourceObject(SourceActor);
 	const FGameplayEffectSpecHandle Spec = SourceASC->MakeOutgoingSpec(GEClass, 1.f, Context);
+
+	if (Spec.IsValid() && EffectRow.ValueAttribute.IsValid())
+	{
+		Spec.Data->SetSetByCallerMagnitude(EffectRow.ValueAttribute, EvaluatedValue);
+	}
+
+	return Spec;
+}
+
+FGameplayEffectSpecHandle USkillConfigSubsystem::MakePassiveEffectSpec(
+	const FSkillEffectRow& EffectRow,
+	float EvaluatedValue,
+	UAbilitySystemComponent* OwnerASC) const
+{
+	const UFrontendDeveloperSettings* Settings = GetDefault<UFrontendDeveloperSettings>();
+	if (!Settings || !OwnerASC) return FGameplayEffectSpecHandle();
+
+	TSubclassOf<UGameplayEffect> GEClass;
+	if (EffectRow.EffectType.MatchesTag(FrontendGameplayTags::Effect_Heal))
+	{
+		GEClass = Settings->HealGEClass;
+		EvaluatedValue = -FMath::Abs(EvaluatedValue);
+	}
+	else
+	{
+		GEClass = Settings->PassiveGEClass;
+	}
+
+	if (!GEClass) return FGameplayEffectSpecHandle();
+
+	FGameplayEffectContextHandle Context = OwnerASC->MakeEffectContext();
+	const FGameplayEffectSpecHandle Spec = OwnerASC->MakeOutgoingSpec(GEClass, 1.f, Context);
 
 	if (Spec.IsValid() && EffectRow.ValueAttribute.IsValid())
 	{

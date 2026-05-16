@@ -42,6 +42,13 @@ public:
 	/** 公式求值 */
 	float EvaluateFormula(const FString& Formula, int32 Level = 1, int32 Stacks = 1) const;
 
+	/**
+	 * 查询技能剩余冷却时间（秒）
+	 * 返回 0 表示不在冷却中；UI 可每帧或定时轮询此函数
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SkillSystem")
+	float GetSkillCooldownTimeRemaining(FName SkillID, UAbilitySystemComponent* ASC) const;
+
 	/** 从效果行创建可应用的 GameplayEffectSpecHandle */
 	FGameplayEffectSpecHandle MakeEffectSpec(
 		const FSkillEffectRow& EffectRow,
@@ -55,6 +62,15 @@ public:
 		float EvaluatedModifierValue,
 		float EvaluatedDuration,
 		UObject* SourceObject) const;
+
+	/**
+	 * 为被动效果创建 Infinite GameplayEffectSpecHandle
+	 * 返回的 Spec 可直接 ApplyGameplayEffectSpecToSelf，句柄需由调用方保存以便移除
+	 */
+	FGameplayEffectSpecHandle MakePassiveEffectSpec(
+		const FSkillEffectRow& EffectRow,
+		float EvaluatedValue,
+		UAbilitySystemComponent* OwnerASC) const;
 
 private:
 	/** 确保 DataTable 已加载（懒加载，从 UFrontendDeveloperSettings 读取路径） */

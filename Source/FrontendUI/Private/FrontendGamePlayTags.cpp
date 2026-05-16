@@ -46,4 +46,21 @@ namespace FrontendGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Attr_HP, "Attr.HP");
 	UE_DEFINE_GAMEPLAY_TAG(Attr_MP, "Attr.MP");
 	UE_DEFINE_GAMEPLAY_TAG(Attr_Energy, "Attr.Energy");
+
+	// ---- 被动技能类型标签 ----
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Passive, "Skill.Passive");
+
+	// ---- 被动技能触发条件标签 ----
+	UE_DEFINE_GAMEPLAY_TAG(Trigger_OnDamaged, "Trigger.OnDamaged");
+	UE_DEFINE_GAMEPLAY_TAG(Trigger_OnKill, "Trigger.OnKill");
+
+	// ---- 技能冷却标签 ----
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_LightAttack, "Cooldown.Skill.LightAttack");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_HeavyAttack, "Cooldown.Skill.HeavyAttack");
+
+	// ---- 技能输入标签 ----
+	UE_DEFINE_GAMEPLAY_TAG(Skill_Q, "Skill.Q");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_W, "Skill.W");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_E, "Skill.E");
+	UE_DEFINE_GAMEPLAY_TAG(Skill_R, "Skill.R");
 }

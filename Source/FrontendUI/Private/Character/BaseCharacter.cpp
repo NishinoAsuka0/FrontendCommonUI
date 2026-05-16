@@ -13,7 +13,9 @@
 
 // GAS
 #include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystem/AbilitySet.h"
+#include "AbilitySystem/AttributeSet_Base.h"
 #include "PlayerState/CharacterState.h"
 #include "GameplayEffect.h"
 
@@ -48,6 +50,81 @@ ABaseCharacter::ABaseCharacter()
 	MoveComp->BrakingDecelerationWalking = 2000.f;
 
 	FallbackASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("FallbackASC"));
+}
+
+// =====================================================================================
+// 生命值事件
+// =====================================================================================
+void ABaseCharacter::BindHealthDelegates()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC) return;
+
+	if (const UAttributeSet_Base* AttrSet = ASC->GetSet<UAttributeSet_Base>())
+	{
+		if (!AttrSet->OnHealthChanged.IsBoundToObject(this))
+		{
+			AttrSet->OnHealthChanged.AddUObject(this, &ABaseCharacter::HandleHealthChanged);
+			AttrSet->OnOutOfHealth.AddUObject(this, &ABaseCharacter::HandleOutOfHealth);
+			AttrSet->OnMPChanged.AddUObject(this, &ABaseCharacter::HandleMPChanged);
+		}
+	}
+}
+
+void ABaseCharacter::BroadcastInitial()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC) return;
+
+	if (const UAttributeSet_Base* AttrSet = ASC->GetSet<UAttributeSet_Base>())
+	{
+		const float InitHP = AttrSet->GetHP();
+		const float InitMP = AttrSet->GetMP();
+		HandleHealthChanged(nullptr, nullptr, nullptr, 0.f, InitHP, InitHP);
+		HandleMPChanged(nullptr, nullptr, nullptr, 0.f, InitMP, InitMP);
+	}
+}
+
+void ABaseCharacter::HandleHealthChanged(AActor* InInstigator, AActor* Causer,
+	const FGameplayEffectSpec* Spec, float Magnitude, float OldValue, float NewValue)
+{
+	const float Delta = NewValue - OldValue;
+	OnHealthChanged.Broadcast(OldValue, NewValue, Delta, InInstigator);
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green,
+		FString::Printf(TEXT("[HP] %.0f → %.0f (%+.0f)"), OldValue, NewValue, Delta));
+}
+
+
+void ABaseCharacter::HandleMPChanged(AActor* InInstigator, AActor* Causer, const FGameplayEffectSpec* Spec,
+	float Magnitude, float OldValue, float NewValue)
+{
+	const float Delta = NewValue - OldValue;
+	OnMPChanged.Broadcast(OldValue, NewValue, Delta, InInstigator);
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue,
+		FString::Printf(TEXT("[MP] %.0f → %.0f (%+.0f)"), OldValue, NewValue, Delta));
+}
+
+void ABaseCharacter::HandleOutOfHealth(AActor* InInstigator, AActor* Causer,
+                                       const FGameplayEffectSpec* Spec, float Magnitude, float OldValue, float NewValue)
+{
+	Die();
+	OnDeath.Broadcast(InInstigator);
+}
+
+void ABaseCharacter::Die_Implementation()
+{
+	if (bIsDead) return;
+	bIsDead = true;
+
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->DisableInput(PC);
+	}
 }
 
 // =====================================================================================
@@ -124,13 +201,8 @@ void ABaseCharacter::BeginPlay()
 		WC->OnWeaponHit.AddDynamic(this, &ABaseCharacter::OnAttackHit);
 	}
 
-	if (FallbackASC)
-	{
-		for (const TObjectPtr<UAbilitySet>& Set : FallbackAbilitySets)
-		{
-			if (Set) Set->GiveToAbilitySystem(FallbackASC, this);
-		}
-	}
+	BindHealthDelegates();
+	BroadcastInitial();
 }
 
 void ABaseCharacter::PossessedBy(AController* NewController)
@@ -144,7 +216,12 @@ void ABaseCharacter::PossessedBy(AController* NewController)
 	else if (FallbackASC)
 	{
 		FallbackASC->InitAbilityActorInfo(this, this);
+		for (const TObjectPtr<UAbilitySet>& Set : FallbackAbilitySets)
+		{
+			if (Set) Set->GiveToAbilitySystem(FallbackASC, this);
+		}
 	}
+	BindHealthDelegates();
 }
 
 void ABaseCharacter::OnRep_PlayerState()
@@ -159,6 +236,7 @@ void ABaseCharacter::OnRep_PlayerState()
 	{
 		FallbackASC->InitAbilityActorInfo(this, this);
 	}
+	BindHealthDelegates();
 }
 
 void ABaseCharacter::Jump()
@@ -196,32 +274,45 @@ UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
 
 void ABaseCharacter::LightAttack()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (!ASC) return;
-
-	USkillConfigSubsystem* SkillSub = USkillConfigSubsystem::Get(this);
-	if (!SkillSub) return;
-
-	const FSkillConfigRow* Config = SkillSub->GetSkillConfig(LightAttackSkillID);
-	if (!Config || Config->AbilityTags.IsEmpty()) return;
-
-	ActiveSkillID = LightAttackSkillID;
-	ASC->TryActivateAbilitiesByTag(Config->AbilityTags);
+	ActivateAbilityByTag(FrontendGameplayTags::Skill_LightAttack);
 }
 
 void ABaseCharacter::HeavyAttack()
 {
+	ActivateAbilityByTag(FrontendGameplayTags::Skill_HeavyAttack);
+}
+
+void ABaseCharacter::ActivateAbilityByTag(FGameplayTag Tag)
+{
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (!ASC) return;
+	if (!ASC)
+	{
+		DebugHelper::Print("ActivateAbilityByTag FAIL: ASC is NULL", 2, FColor::Red);
+		return;
+	}
 
-	USkillConfigSubsystem* SkillSub = USkillConfigSubsystem::Get(this);
-	if (!SkillSub) return;
+	const FGameplayAbilitySpecHandle Handle = FindAbilityHandleByTag(ASC, Tag);
+	if (!Handle.IsValid())
+	{
+		DebugHelper::Print(FString::Printf(TEXT("ActivateAbilityByTag FAIL: no ability found for Tag=%s"), *Tag.GetTagName().ToString()), 2, FColor::Red);
+		return;
+	}
 
-	const FSkillConfigRow* Config = SkillSub->GetSkillConfig(HeavyAttackSkillID);
-	if (!Config || Config->AbilityTags.IsEmpty()) return;
+	const FString TagStr = Tag.GetTagName().ToString();
+	const int32 DotIndex = TagStr.Find(TEXT("."));
+	ActiveSkillID = (DotIndex != INDEX_NONE) ? FName(*TagStr.Mid(DotIndex + 1)) : FName(*TagStr);
 
-	ActiveSkillID = HeavyAttackSkillID;
-	ASC->TryActivateAbilitiesByTag(Config->AbilityTags);
+	if (const FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(Handle))
+	{
+		ActiveSkillLevel = Spec->Level;
+	}
+
+	const bool bActivated = ASC->TryActivateAbility(Handle);
+	if (!bActivated)
+	{
+		DebugHelper::Print(FString::Printf(TEXT("ActivateAbilityByTag FAIL: TryActivateAbility returned false for Tag=%s, SkillID=%s, Level=%d"),
+			*TagStr, *ActiveSkillID.ToString(), ActiveSkillLevel), 2, FColor::Red);
+	}
 }
 
 void ABaseCharacter::OnAttackHit(AActor* HitActor, const FHitResult& HitResult)
@@ -247,8 +338,7 @@ void ABaseCharacter::OnAttackHit(AActor* HitActor, const FHitResult& HitResult)
 	{
 		if (!Effect.EffectType.MatchesTag(FrontendGameplayTags::Effect_Damage)) continue;
 
-		const float Damage = FFormulaEvaluator::Evaluate(
-			FString::Printf(TEXT("%.1f + %.1f * Level"), Effect.BaseValue, Effect.ValueScale), 1);
+		const float Damage = Effect.BaseValue + Effect.ValueScale * static_cast<float>(ActiveSkillLevel);
 
 		FGameplayEffectSpecHandle Spec = SkillSubsystem->MakeEffectSpec(Effect, Damage, this, TargetASC);
 		if (Spec.IsValid())
@@ -256,4 +346,18 @@ void ABaseCharacter::OnAttackHit(AActor* HitActor, const FHitResult& HitResult)
 			TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 		}
 	}
+}
+
+FGameplayAbilitySpecHandle ABaseCharacter::FindAbilityHandleByTag(UAbilitySystemComponent* ASC, const FGameplayTag& Tag) const
+{
+	if (!ASC) return {};
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.GetDynamicSpecSourceTags().HasTagExact(Tag))
+		{
+			return Spec.Handle;
+		}
+	}
+	return {};
 }

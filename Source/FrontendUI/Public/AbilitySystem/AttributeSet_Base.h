@@ -14,6 +14,14 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+struct FGameplayEffectSpec;
+
+// 内部 C++ 委托，不暴露给蓝图，供绑定方（如 ABaseCharacter）主动订阅
+DECLARE_MULTICAST_DELEGATE_SixParams(FOnAttributeHealthEvent,
+	AActor* /*Instigator*/, AActor* /*Causer*/,
+	const FGameplayEffectSpec* /*Spec*/, float /*Magnitude*/,
+	float /*OldValue*/, float /*NewValue*/);
+
 /**
  * 基础属性集：HP / MP / Energy，各自带 Max。
  *
@@ -29,6 +37,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
@@ -63,7 +72,17 @@ public:
 	// ---- Damage（元属性：非复制，GE 传入伤害值，PostGameplayEffectExecute 处理后归零）----
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Meta")
 	FGameplayAttributeData IncomingDamage;
-	ATTRIBUTE_ACCESSORS(UAttributeSet_Base, IncomingDamage)
+	ATTRIBUTE_ACCESSORS(UAttributeSet_Base, IncomingDamage);
+
+	// HP 发生任何变化时广播
+	mutable FOnAttributeHealthEvent OnHealthChanged;
+	
+	// MP 发生变化时广播
+	
+	mutable FOnAttributeHealthEvent OnMPChanged;
+
+	// HP 首次降至 0 时广播（bOutOfHealth 保证同一次死亡只触发一次）
+	mutable FOnAttributeHealthEvent OnOutOfHealth;
 
 protected:
 	UFUNCTION()
@@ -83,4 +102,13 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxEnergy(const FGameplayAttributeData& OldValue);
+
+private:
+	// PreGameplayEffectExecute 里捕获，比 PreAttributeChange 更精确：每个 GE 只捕获一次
+	float HealthBeforeAttributeChange = 0.f;
+	
+	float MPBeforeAttributeChange = 0.f;
+
+	// 防止 HP 已为 0 时多帧 GE 重复触发 OnOutOfHealth
+	bool bOutOfHealth = false;
 };

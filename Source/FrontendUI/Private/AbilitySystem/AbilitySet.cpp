@@ -30,7 +30,12 @@ void UAbilitySet::GiveToAbilitySystem(UAbilitySystemComponent* ASC, UObject* Sou
 			const_cast<FGameplayTagContainer&>(Spec.GetDynamicSpecSourceTags()).AddTag(Entry.InputTag);
 		}
 
-		ASC->GiveAbility(Spec);
+		FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
+
+		if (Entry.bAutoActivate && Handle.IsValid())
+		{
+			ASC->TryActivateAbility(Handle);
+		}
 	}
 
 	// 2) 创建 AttributeSet

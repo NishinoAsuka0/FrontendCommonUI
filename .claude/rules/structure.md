@@ -1,7 +1,7 @@
 # 项目结构索引
 
-> 最后更新: 2026-05-08
-> Timestamp: 20260508
+> 最后更新: 2026-05-16
+> Timestamp: 20260516
 
 ---
 
@@ -21,7 +21,7 @@
 |---------|------|
 | `Source/FrontendUI/Public/Controller/FrontendPlayerController.h` | 前端 PlayerController（UI 层） |
 | `Source/FrontendUI/Private/Controller/FrontendPlayerController.cpp` | 前端 PlayerController 实现 |
-| `Source/FrontendUI/Public/Controller/InGamePlayerController.h` | 游戏内 PlayerController（EnhancedInput 绑定 Move/Look/Jump/Attack） |
+| `Source/FrontendUI/Public/Controller/InGamePlayerController.h` | 游戏内 PlayerController（InputConfig 驱动技能输入绑定，移动/视角/跳跃保持独立） |
 | `Source/FrontendUI/Private/Controller/InGamePlayerController.cpp` | 游戏内 PlayerController 实现 |
 
 ### PlayerState (PlayerState/)
@@ -33,10 +33,15 @@
 ### 角色 (Character/)
 | 文件路径 | 描述 |
 |---------|------|
-| `Source/FrontendUI/Public/Character/BaseCharacter.h` | 角色基类头文件（移动/视角/攻击） |
+| `Source/FrontendUI/Public/Character/BaseCharacter.h` | 角色基类头文件（移动/视角/ActivateAbilityByTag） |
 | `Source/FrontendUI/Private/Character/BaseCharacter.cpp` | 角色基类实现 |
 | `Source/FrontendUI/Public/Character/WeaponColliderComponent.h` | 武器碰撞组件头文件（UWeaponColliderComponent + AnimNotify 类） |
 | `Source/FrontendUI/Private/Character/WeaponColliderComponent.cpp` | 武器碰撞组件实现 |
+
+### 输入配置 (Input/)
+| 文件路径 | 描述 |
+|---------|------|
+| `Source/FrontendUI/Public/Input/InputConfig.h` | 输入配置 DataAsset（InputAction→GameplayTag 映射，驱动技能输入绑定） |
 
 ### 控件 (Widgets/)
 | 文件路径 | 描述 |
@@ -298,6 +303,7 @@
 | FrontendDeveloperSettings, 开发者设置 | `Source/FrontendUI/Public/FrontendSettings/FrontendDeveloperSettings.h` |
 | Settings, 设置 | `Source/FrontendUI/Public/FrontendSettings/FrontendDeveloperSettings.h` |
 | GamePlayTags, 标签 | `Source/FrontendUI/Public/FrontendGamePlayTags.h` |
+| InputConfig, 输入配置, InputAction映射, DA_InputConfig | `Source/FrontendUI/Public/Input/InputConfig.h` |
 | FunctionLibrary, 功能库 | `Source/FrontendUI/Public/FrontendFunctionLibrary.h` |
 | FrontendEnumTypes, 枚举类型 | `Source/FrontendUI/Public/FrontendTypes/FrontendEnumTypes.h` |
 | Debug, 调试 | `Source/FrontendUI/Public/FrontendDebugHelper.h` |

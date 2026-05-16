@@ -40,4 +40,8 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "SkillSystem")
 	TSubclassOf<UGameplayEffect> BuffGEClass;
+
+	/** 被动技能专用 GE 基类（DurationType = Infinite，含 SetByCaller Modifier） */
+	UPROPERTY(Config, EditAnywhere, Category = "SkillSystem")
+	TSubclassOf<UGameplayEffect> PassiveGEClass;
 };

@@ -62,10 +62,26 @@ struct FRONTENDUI_API FSkillConfigRow : public FTableRowBase
 	/** 攻击蒙太奇（软引用，激活时同步加载并播放） */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSoftObjectPtr<UAnimMontage> AttackMontage;
-
+	
 	/** 是否在 AbilitySet 授予时自动注册到 ASC */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool bGrantToASC = true;
+};
+
+/**
+ * 技能效果持续时间类型
+ *
+ * 对应 GAS 的 EGameplayEffectDurationType：
+ *  - Instant    → 瞬间效果，应用后立即结束
+ *  - HasDuration → 有限持续时间，由 Duration 字段指定秒数
+ *  - Infinite   → 永久效果，只有手动移除才会结束（被动属性加成）
+ */
+UENUM(BlueprintType)
+enum class ESkillEffectDurationType : uint8
+{
+	Instant     UMETA(DisplayName = "即时"),
+	HasDuration UMETA(DisplayName = "有限时长"),
+	Infinite    UMETA(DisplayName = "永久（被动）"),
 };
 
 /**
@@ -102,7 +118,11 @@ struct FRONTENDUI_API FSkillEffectRow : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Attr"))
 	FGameplayTag ValueAttribute;
 
-	/** 持续时间，0 = 即时效果 */
+	/** 持续时间类型：Instant / HasDuration / Infinite */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	ESkillEffectDurationType DurationType = ESkillEffectDurationType::Instant;
+
+	/** 持续时间（秒），仅 DurationType=HasDuration 时有效 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Duration = 0.f;
 
@@ -113,6 +133,14 @@ struct FRONTENDUI_API FSkillEffectRow : public FTableRowBase
 	/** 关联 Buff ID，EffectType=Buff 时有效 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName BuffID;
+
+	/**
+	 * 条件触发 Tag（仅被动技能使用）
+	 * 留空 = 授予时立即应用；填写 Tag = 监听对应 GameplayEvent 再触发效果
+	 * 例：Trigger.OnDamaged 表示"受到伤害时触发"
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Trigger"))
+	FGameplayTag TriggerTag;
 };
 
 /**

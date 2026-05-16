@@ -34,6 +34,10 @@ struct FAbilitySet_GameplayAbility
 	/** 输入 Tag：存储在 DynamicAbilityTags 中，供输入系统匹配 */
 	UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (Categories = "InputTag"))
 	FGameplayTag InputTag;
+
+	/** 授予后立即激活（被动技能设为 true，主动技能保持默认 false） */
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	bool bAutoActivate = false;
 };
 
 /**

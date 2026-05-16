@@ -8,11 +8,12 @@
     "TargetType": {
       "TagName": "Target.Enemy"
     },
-    "BaseValue": 15,
+    "BaseValue": 150,
     "ValueScale": 5,
     "ValueAttribute": {
       "TagName": "Attr.HP"
     },
+    "DurationType": "Instant",
     "Duration": 0,
     "Interval": 0
   },
@@ -30,6 +31,61 @@
     "ValueAttribute": {
       "TagName": "Attr.HP"
     },
+    "DurationType": "Instant",
+    "Duration": 0,
+    "Interval": 0
+  },
+  {
+    "Name": "IronBody_HPBonus",
+    "SkillID": "IronBody",
+    "EffectType": {
+      "TagName": "Effect.Buff"
+    },
+    "TargetType": {
+      "TagName": "Target.Self"
+    },
+    "BaseValue": 50,
+    "ValueScale": 20,
+    "ValueAttribute": {
+      "TagName": "Attr.HP"
+    },
+    "DurationType": "Infinite",
+    "Duration": 0,
+    "Interval": 0
+  },
+  {
+    "Name": "Vengeance_OnHit_HPRestore",
+    "SkillID": "Passive",
+    "EffectType": {
+      "TagName": "Effect.Heal"
+    },
+    "TargetType": {
+      "TagName": "Target.Self"
+    },
+    "BaseValue": 10,
+    "ValueScale": 3,
+    "ValueAttribute": {
+      "TagName": "Attr.HP"
+    },
+    "DurationType": "Infinite",
+    "Duration": 0,
+    "Interval": 0
+  },
+  {
+    "Name": "Healing_RestoreHP",
+    "SkillID": "Healing",
+    "EffectType": {
+      "TagName": "Effect.Heal"
+    },
+    "TargetType": {
+      "TagName": "Target.Self"
+    },
+    "BaseValue": 30,
+    "ValueScale": 10,
+    "ValueAttribute": {
+      "TagName": "Attr.HP"
+    },
+    "DurationType": "Instant",
     "Duration": 0,
     "Interval": 0
   }

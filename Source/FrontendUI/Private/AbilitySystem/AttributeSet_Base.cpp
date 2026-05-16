@@ -3,6 +3,7 @@
 #include "AbilitySystem/AttributeSet_Base.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
+#include "FrontendGamePlayTags.h"
 
 UAttributeSet_Base::UAttributeSet_Base()
 {
@@ -37,11 +38,26 @@ void UAttributeSet_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME_CONDITION_NOTIFY(UAttributeSet_Base, MaxEnergy, COND_None, REPNOTIFY_Always);
 }
 
+bool UAttributeSet_Base::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+
+	// 在 GE 修改属性之前捕获旧值；PreAttributeChange 每次写入都触发，此处每个 GE 只触发一次更精确
+	HealthBeforeAttributeChange = GetHP();
+	MPBeforeAttributeChange = GetMP();
+	return true;
+}
+
 void UAttributeSet_Base::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
-	// 下限统一为 0
+	// IncomingDamage 允许负值（负值 = 回血），不做非负 clamp
+	if (Attribute == GetIncomingDamageAttribute()) return;
+
 	NewValue = FMath::Max(NewValue, 0.f);
 
 	if (Attribute == GetHPAttribute())
@@ -62,7 +78,6 @@ void UAttributeSet_Base::PreAttributeChange(const FGameplayAttribute& Attribute,
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	// 当前值也受上限约束
 	if (Attribute == GetHPAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, MaxHP.GetCurrentValue());
@@ -81,38 +96,75 @@ void UAttributeSet_Base::PostGameplayEffectExecute(const FGameplayEffectModCallb
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	const FGameplayEffectContextHandle& Context = Data.EffectSpec.GetEffectContext();
+	AActor* Instigator = Context.GetOriginalInstigator();
+	AActor* Causer     = Context.GetEffectCauser();
+
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		const float Damage = IncomingDamage.GetCurrentValue();
-		if (Damage > 0.f)
+		const float RawIncoming = GetIncomingDamage();
+		if (RawIncoming > 0.f)
 		{
-			const float OldHP = HP.GetCurrentValue();
-			const float NewHP = FMath::Max(OldHP - Damage, 0.f);
-			HP.SetCurrentValue(NewHP);
+			const float NewHP = FMath::Max(GetHP() - RawIncoming, 0.f);
+			SetHP(NewHP);
 
-			AActor* Owner = GetOwningActor();
-			UE_LOG(LogTemp, Log, TEXT("[Damage] %s 受到 %.0f 点伤害 | HP: %.0f → %.0f (Max: %.0f)"),
-				Owner ? *Owner->GetName() : TEXT("Unknown"),
-				Damage, OldHP, NewHP, MaxHP.GetCurrentValue());
+			UE_LOG(LogTemp, Log, TEXT("[Damage] %s 受到 %.0f 点伤害 | HP: %.0f → %.0f"),
+				*GetNameSafe(GetOwningActor()), RawIncoming, HealthBeforeAttributeChange, NewHP);
+
+			// 广播受伤 GameplayEvent，驱动被动技能触发（如 Vengeance 受击回血）
+			FGameplayEventData EventData;
+			EventData.Instigator = Instigator;
+			EventData.Target = GetOwningActor();
+			EventData.EventMagnitude = RawIncoming;
+			GetOwningAbilitySystemComponent()->HandleGameplayEvent(
+				FrontendGameplayTags::Trigger_OnDamaged, &EventData);
+		}
+		else if (RawIncoming < 0.f && !bOutOfHealth)
+		{
+			// 负值 IncomingDamage = 回血
+			const float HealAmount = -RawIncoming;
+			const float NewHP = FMath::Min(GetHP() + HealAmount, GetMaxHP());
+			SetHP(NewHP);
+
+			UE_LOG(LogTemp, Log, TEXT("[Heal] %s 回复 %.0f 点生命 | HP: %.0f → %.0f"),
+				*GetNameSafe(GetOwningActor()), HealAmount, HealthBeforeAttributeChange, NewHP);
 		}
 
-		IncomingDamage.SetBaseValue(0.f);
-		IncomingDamage.SetCurrentValue(0.f);
-		return;
+		SetIncomingDamage(0.f);
 	}
-
-	if (Data.EvaluatedData.Attribute == GetHPAttribute())
+	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
-		HP.SetCurrentValue(FMath::Clamp(HP.GetCurrentValue(), 0.f, MaxHP.GetCurrentValue()));
+		SetHP(FMath::Clamp(GetHP(), 0.f, GetMaxHP()));
 	}
 	else if (Data.EvaluatedData.Attribute == GetMPAttribute())
 	{
-		MP.SetCurrentValue(FMath::Clamp(MP.GetCurrentValue(), 0.f, MaxMP.GetCurrentValue()));
+		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
 	}
 	else if (Data.EvaluatedData.Attribute == GetEnergyAttribute())
 	{
-		Energy.SetCurrentValue(FMath::Clamp(Energy.GetCurrentValue(), 0.f, MaxEnergy.GetCurrentValue()));
+		SetEnergy(FMath::Clamp(GetEnergy(), 0.f, GetMaxEnergy()));
 	}
+
+	// HP 实际发生变化才广播，避免 Damage=0 时产生噪音事件
+	if (GetHP() != HealthBeforeAttributeChange)
+	{
+		OnHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec,
+			Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHP());
+	}
+	
+	if (GetMP()!= MPBeforeAttributeChange)
+	{
+		OnMPChanged.Broadcast(Instigator, Causer, &Data.EffectSpec,
+			Data.EvaluatedData.Magnitude, MPBeforeAttributeChange, GetMP());
+	}
+
+	if ((GetHP() <= 0.f) && !bOutOfHealth)
+	{
+		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec,
+			Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHP());
+	}
+
+	bOutOfHealth = (GetHP() <= 0.f);
 }
 
 // ---- Rep callbacks ----
@@ -120,6 +172,21 @@ void UAttributeSet_Base::PostGameplayEffectExecute(const FGameplayEffectModCallb
 void UAttributeSet_Base::OnRep_HP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_Base, HP, OldValue);
+
+	const float NewHP = GetHP();
+	const float EstimatedMagnitude = NewHP - OldValue.GetCurrentValue();
+
+	// 客户端复制回调：Instigator 信息在客户端不可用，传 nullptr
+	OnHealthChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude,
+		OldValue.GetCurrentValue(), NewHP);
+
+	if (!bOutOfHealth && NewHP <= 0.f)
+	{
+		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude,
+			OldValue.GetCurrentValue(), NewHP);
+	}
+
+	bOutOfHealth = (NewHP <= 0.f);
 }
 
 void UAttributeSet_Base::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
@@ -130,6 +197,11 @@ void UAttributeSet_Base::OnRep_MaxHP(const FGameplayAttributeData& OldValue)
 void UAttributeSet_Base::OnRep_MP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAttributeSet_Base, MP, OldValue);
+	
+	const float NewMP = GetMP();
+	const float EstimatedMagnitude = NewMP - OldValue.GetCurrentValue();
+	
+	OnMPChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude,OldValue.GetCurrentValue(),NewMP);
 }
 
 void UAttributeSet_Base::OnRep_MaxMP(const FGameplayAttributeData& OldValue)

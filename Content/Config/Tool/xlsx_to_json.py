@@ -8,7 +8,7 @@ xlsx_to_json.py
   - 第一列 "Name" → JSON "Name" (DataTable RowName)
   - (Tag=xxx) 格式 → 提取 "xxx"
   - (Tags=xxx|yyy) 格式 → 提取 "xxx|yyy"
-  - NSLOCTEXT(,,text) → 保留原样，UE 自动解析
+  - NSLOCTEXT(,,text) → 提取纯文本 text
   - 数值/布尔 → 按原类型写入 JSON
 
 用法：
@@ -87,7 +87,18 @@ def parse_cell_value(value):
     if num is not None:
         return num
 
-    # NSLOCTEXT 和其他文本保持原样
+    # NSLOCTEXT(,,text) → 提取纯文本
+    m = re.match(r"^NSLOCTEXT\(\s*,\s*,\s*(.+?)\s*\)$", s)
+    if m:
+        return m.group(1)
+
+    # NSLOCTEXT("NS","Key","text") → 输出 UE 标准 JSON 格式
+    m = re.match(r'^NSLOCTEXT\(\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\s*\)$', s)
+    if m:
+        ns, key, text = m.group(1), m.group(2), m.group(3)
+        return f'NSLOCTEXT(\\"{ns}\\", \\"{key}\\", \\"{text}\\")'
+
+    # 其他文本保持原样
     return s
 
 
